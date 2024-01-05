@@ -1,0 +1,18 @@
+{
+  "name": "regen-role-bot",
+  "version": "1.0.0",
+  "description": "Bot for adding roles in discord",
+  "main": "bot.js",
+  "scripts": {
+    "test": "test"
+  },
+  "author": "treefren",
+  "license": "MIT",
+  "dependencies": {
+    "discord.js": "^14.14.1",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "eslint": "^8.56.0"
+  }
+}

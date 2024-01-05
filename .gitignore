@@ -1,0 +1,11 @@
+# log file
+*.log
+
+# dep folder
+node_modules/
+
+# env file
+.env
+
+# Intellij files
+.idea
