@@ -5,6 +5,13 @@ const path = require('path');
 
 const logStream = fs.createWriteStream(path.join(__dirname, 'bot.log'), { flags: 'a' });
 
+const monitoredChannels = {
+    '1193753464631726091': { // 'regens' channel
+        emojis: ['☀️'],
+        roleId: '1193745444308795392' // 'regen' role
+    }
+}
+
 // Create a new client instance
 const client = new Client({
     intents: [
@@ -16,10 +23,6 @@ const client = new Client({
 });
 
 const token = process.env.DISCORD_BOT_TOKEN;
-
-const monitoredChannelID = process.env.DISCORD_CHANNEL_ID;
-
-const roleID = process.env.DISCORD_ROLE_ID;
 
 function logMessage(message) {
     console.log(message);
@@ -40,10 +43,15 @@ client.on('messageReactionAdd', async (reaction, user) => {
             return;
         }
     }
+    const channelId = reaction.message.channel.id
+    const emoji = reaction.emoji.name
 
-    if (reaction.message.channel.id === monitoredChannelID) {
+    // received a 'no-prototype-builtins' warning from eslint here so calling hasOwnProperty this way to be safe
+    if (Object.prototype.hasOwnProperty.call(monitoredChannels, channelId) &&
+        monitoredChannels[channelId].emojis.includes(emoji)) {
+
         let guildMember = reaction.message.guild.members.cache.get(user.id);
-        let role = reaction.message.guild.roles.cache.get(roleID);
+        let role = reaction.message.guild.roles.cache.get(monitoredChannels[channelId].roleId);
         if (guildMember && role) {
             guildMember.roles.add(role)
                 .then(() => logMessage(`Assigned role to ${user.tag}`))

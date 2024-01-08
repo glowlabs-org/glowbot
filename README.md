@@ -15,6 +15,6 @@ You will need to have NodeJs v20.10.0 installed and NPM v10.2.3.
 1. After following the configuration steps above and installing node, open a command window and navigate to the project root.
 2. Run `npm install`
    1. This only needs to be run the first time.
-3. Run `node bot.js`
+3. Run `node role-bot.js`
 4. That's it! The bot is now running and should assign your role to users which react to messages in the channel you configured.
    1. You can see any logs in the log file in the project root.
