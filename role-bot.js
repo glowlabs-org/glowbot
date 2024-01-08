@@ -3,7 +3,7 @@ const { Client, GatewayIntentBits, Partials } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
 
-const logStream = fs.createWriteStream(path.join(__dirname, 'bot.log'), { flags: 'a' });
+const logStream = fs.createWriteStream(path.join(__dirname, 'role-bot.log'), { flags: 'a' });
 
 const monitoredChannels = {
     '1193753464631726091': { // 'regens' channel
