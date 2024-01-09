@@ -6,7 +6,7 @@ const path = require('path');
 const logStream = fs.createWriteStream(path.join(__dirname, 'role-bot.log'), { flags: 'a' });
 
 const monitoredChannels = {
-    '1193753464631726091': { // 'regens' channel
+    '1126889730227843132': { // '#start-here' channel
         emojis: ['☀️'],
         roleId: '1193745444308795392' // 'regen' role
     }
