@@ -71,7 +71,7 @@ async function fetchGlowStats() {
 }
 
 client.on(Events.MessageCreate, async message => {
-    if (message.content === '$stats') {
+    if (message.content === '!stats') {
         const stats = await fetchGlowStats();
         if (stats) {
             const reply = `Glow price (Uniswap): $${(stats.uniswapPrice).toFixed(4)}\n` +
