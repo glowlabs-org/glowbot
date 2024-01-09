@@ -38,6 +38,7 @@ function appendErrorToMessage(msg, error) {
     if (error.stack) {
         msg += ' | stack: ' + error.stack;
     }
+    return msg;
 }
 
 client.once('ready', () => {
