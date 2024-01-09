@@ -26,9 +26,18 @@ const client = new Client({
 
 const token = process.env.DISCORD_BOT_TOKEN;
 
-function logMessage(message) {
-    console.log(message);
+function logMessage(message, isError = false) {
+    isError ? console.error(message) : console.log(message);
     logStream.write(`${new Date().toISOString()} - ${message}\n`);
+}
+
+function appendErrorToMessage(msg, error) {
+    if (error.message) {
+        msg += error.message;
+    }
+    if (error.stack) {
+        msg += ' | stack: ' + error.stack;
+    }
 }
 
 client.once('ready', () => {
@@ -51,11 +60,12 @@ async function fetchGlowStats() {
             uniswapPrice: priceData.tokenPriceUniswap,
             contractPrice: priceData.tokenPriceContract / 10000,
             tokenHolders: holdersData.tokenHolderCount,
-            numberOfFarms: farmsData[farmsData.length-1].count,
+            numberOfFarms: farmsData[farmsData.length - 1].count,
             powerOutput: outputData[outputData.length - 1].output / 1000000
         };
     } catch (error) {
-        console.error('Error fetching glow stats:', error);
+        const msg = appendErrorToMessage('Error fetching glow stats: ', error)
+        logMessage(msg, true)
         return null;
     }
 }
@@ -65,10 +75,10 @@ client.on(Events.MessageCreate, async message => {
         const stats = await fetchGlowStats();
         if (stats) {
             const reply = `Glow price (Uniswap): $${(stats.uniswapPrice).toFixed(4)}\n` +
-                          `Glow price (Contract): $${stats.contractPrice.toFixed(4)}\n` +
-                          `Token holders: ${stats.tokenHolders}\n` +
-                          `Number of farms: ${stats.numberOfFarms}\n` +
-                          `Power output of Glow farms (last week): ${Math.round(stats.powerOutput)} KWh`;
+                `Glow price (Contract): $${stats.contractPrice.toFixed(4)}\n` +
+                `Token holders: ${stats.tokenHolders}\n` +
+                `Number of farms: ${stats.numberOfFarms}\n` +
+                `Power output of Glow farms (last week): ${Math.round(stats.powerOutput)} KWh`;
             message.channel.send(reply);
         } else {
             message.channel.send('Sorry, I could not fetch the stats.');
