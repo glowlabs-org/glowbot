@@ -45,7 +45,7 @@ async function fetchGlowStats() {
         const outputData = outputResponse.data;
 
         return {
-            uniswapPrice: priceData.tokenPriceUniswap / 10000,
+            uniswapPrice: priceData.tokenPriceUniswap,
             contractPrice: priceData.tokenPriceContract / 10000,
             tokenHolders: holdersData.tokenHolderCount,
             numberOfFarms: farmsData[farmsData.length-1].count,
@@ -61,7 +61,7 @@ client.on(Events.MessageCreate, async message => {
     if (message.content === '$stats') {
         const stats = await fetchGlowStats();
         if (stats) {
-            const reply = `Glow price (Uniswap): $${(stats.uniswapPrice * 10000).toFixed(4)}\n` +
+            const reply = `Glow price (Uniswap): $${(stats.uniswapPrice).toFixed(4)}\n` +
                           `Glow price (Contract): $${stats.contractPrice.toFixed(4)}\n` +
                           `Token holders: ${stats.tokenHolders}\n` +
                           `Number of farms: ${stats.numberOfFarms}\n` +
