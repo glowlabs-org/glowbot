@@ -93,7 +93,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
         try {
             await reaction.fetch();
         } catch (error) {
-            logMessage(`Something went wrong when fetching the message: ${error}`);
+            logMessage(appendErrorToMessage(`Something went wrong when fetching the message: ${error}. `, error), true);
             return;
         }
     }
@@ -109,10 +109,10 @@ client.on('messageReactionAdd', async (reaction, user) => {
         if (guildMember && role) {
             guildMember.roles.add(role)
                 .then(() => logMessage(`Assigned role to ${user.tag}`))
-                .catch(error => logMessage(`Error assigning role: ${error}`));
+                .catch(error => logMessage(appendErrorToMessage(`Error assigning role: ${error}. `, error), true));
         }
     }
 
 });
 
-client.login(token).catch(error => logMessage(`Login error: ${error}`));
+client.login(token).catch(error => logMessage(appendErrorToMessage(`Login error: ${error}. `, error), true));
