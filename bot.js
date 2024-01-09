@@ -1,7 +1,8 @@
 require('dotenv').config();
-const { Client, GatewayIntentBits, Partials } = require('discord.js');
+const { Client, GatewayIntentBits, Events, Partials } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
+const axios = require('axios');
 
 const logStream = fs.createWriteStream(path.join(__dirname, 'bot.log'), { flags: 'a' });
 
@@ -11,6 +12,7 @@ const client = new Client({
         GatewayIntentBits.Guilds,
         GatewayIntentBits.GuildMessages,
         GatewayIntentBits.GuildMessageReactions,
+        GatewayIntentBits.MessageContent,
     ],
     partials: [Partials.Message, Partials.Channel, Partials.Reaction],
 });
@@ -29,6 +31,48 @@ function logMessage(message) {
 client.once('ready', () => {
     logMessage('Ready!');
 });
+
+async function fetchGlowStats() {
+    try {
+        const priceResponse = await axios.get('https://www.glowstats.xyz/api/tokenPrice');
+        const holdersResponse = await axios.get('https://www.glowstats.xyz/api/tokenHolders');
+        const farmsResponse = await axios.get(`https://www.glowstats.xyz/api/farmCount`);
+        const outputResponse = await axios.get('https://www.glowstats.xyz/api/weeklyOutput');
+
+        const priceData = priceResponse.data;
+        const holdersData = holdersResponse.data;
+        const farmsData = farmsResponse.data;
+        const outputData = outputResponse.data;
+
+        return {
+            uniswapPrice: priceData.tokenPriceUniswap / 10000,
+            contractPrice: priceData.tokenPriceContract / 10000,
+            tokenHolders: holdersData.tokenHolderCount,
+            numberOfFarms: farmsData[farmsData.length-1].count,
+            powerOutput: outputData[outputData.length - 1].output / 1000000
+        };
+    } catch (error) {
+        console.error('Error fetching glow stats:', error);
+        return null;
+    }
+}
+
+client.on(Events.MessageCreate, async message => {
+    if (message.content === '$stats') {
+        const stats = await fetchGlowStats();
+        if (stats) {
+            const reply = `Glow price (Uniswap): $${(stats.uniswapPrice * 10000).toFixed(4)}\n` +
+                          `Glow price (Contract): $${stats.contractPrice.toFixed(4)}\n` +
+                          `Token holders: ${stats.tokenHolders}\n` +
+                          `Number of farms: ${stats.numberOfFarms}\n` +
+                          `Power output of Glow farms (last week): ${Math.round(stats.powerOutput)} KWh`;
+            message.channel.send(reply);
+        } else {
+            message.channel.send('Sorry, I could not fetch the stats.');
+        }
+    }
+});
+
 
 client.on('messageReactionAdd', async (reaction, user) => {
     if (reaction.partial) {
