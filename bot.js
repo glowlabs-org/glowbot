@@ -3,6 +3,7 @@ const { Client, GatewayIntentBits, Events, Partials } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
+const { log } = require('console');
 
 const logStream = fs.createWriteStream(path.join(__dirname, 'bot.log'), { flags: 'a' });
 
@@ -23,9 +24,29 @@ const monitoredChannelID = process.env.DISCORD_CHANNEL_ID;
 
 const roleID = process.env.DISCORD_ROLE_ID;
 
-function logMessage(message) {
-    console.log(message);
-    logStream.write(`${new Date().toISOString()} - ${message}\n`);
+const logTypes = {
+    INFO: 'INFO',
+    ERROR: 'ERROR',
+    WARN: 'WARN',
+    DEBUG: 'DEBUG',
+};
+
+function logMessage(message, type = logTypes.INFO) {
+    if (!Object.values(logTypes).includes(type)) {
+        throw new Error('Invalid log type');
+    }
+
+    const timestamp = new Date().toISOString();
+    const formattedMessage = `${timestamp} - ${type}: ${message}\n`;
+
+    console.log(formattedMessage);
+    logStream.write(formattedMessage);
+
+    // Log stack trace for errors
+    if (type === logTypes.ERROR && message instanceof Error && message.stack) {
+        console.error(message.stack);
+        logStream.write(`${timestamp} - ERROR STACK: ${message.stack}\n`);
+    }
 }
 
 client.once('ready', () => {
@@ -52,7 +73,7 @@ async function fetchGlowStats() {
             powerOutput: outputData[outputData.length - 1].output / 1000000
         };
     } catch (error) {
-        console.error('Error fetching glow stats:', error);
+        logMessage(`Something went wrong while fetching Glow stats: ${error}`, logTypes.ERROR);
         return null;
     }
 }
