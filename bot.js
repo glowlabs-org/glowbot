@@ -1,10 +1,12 @@
 require('dotenv').config();
-const { Client, GatewayIntentBits, Events, Partials } = require('discord.js');
+const { Client, GatewayIntentBits, Events, Partials, ChannelType } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
 
-const logStream = fs.createWriteStream(path.join(__dirname, 'role-bot.log'), { flags: 'a' });
+const logsDir = './discord-logs';
+
+const logStream = fs.createWriteStream(path.join(__dirname, 'bot.log'), { flags: 'a' });
 
 const monitoredChannels = {
     '1126889730227843132': { // '#start-here' channel
@@ -16,6 +18,7 @@ const monitoredChannels = {
 // Create a new client instance
 const client = new Client({
     intents: [
+        GatewayIntentBits.DirectMessages,
         GatewayIntentBits.Guilds,
         GatewayIntentBits.GuildMessages,
         GatewayIntentBits.GuildMessageReactions,
@@ -32,17 +35,24 @@ function logMessage(message, isError = false) {
 }
 
 function appendErrorToMessage(msg, error) {
-    if (error.message) {
-        msg += error.message;
-    }
-    if (error.stack) {
-        msg += ' | stack: ' + error.stack;
+    if (error) {
+        if (error.message) {
+            msg += error.message;
+        }
+        if (error.stack) {
+            msg += ' | stack: ' + error.stack;
+        }
     }
     return msg;
 }
 
 client.once('ready', () => {
     logMessage('Ready!');
+
+    // create logs directory if it doesn't exist
+    if (!fs.existsSync(logsDir)) {
+        fs.mkdirSync(logsDir, { recursive: true });
+    }
 });
 
 async function fetchGlowStats() {
@@ -73,22 +83,67 @@ async function fetchGlowStats() {
 
 client.on(Events.MessageCreate, async message => {
     if (message.content === '!stats') {
-        const stats = await fetchGlowStats();
-        if (stats) {
-            const reply = `Glow price (Uniswap): $${(stats.uniswapPrice).toFixed(4)}\n` +
-                `Glow price (Contract): $${stats.contractPrice.toFixed(4)}\n` +
-                `Token holders: ${stats.tokenHolders}\n` +
-                `Number of farms: ${stats.numberOfFarms}\n` +
-                `Power output of Glow farms (last week): ${Math.round(stats.powerOutput)} KWh`;
-            message.channel.send(reply);
-        } else {
-            message.channel.send('Sorry, I could not fetch the stats.');
-        }
+        await sendGlowStats(message)
+    }
+
+    if (message.author.bot) return; // Ignore messages from bots
+
+    if (message.content === '!ping') {
+        message.channel.send('pong')
+    }
+
+    // log all other messages to a file
+    if (message.channel.type === ChannelType.DM) {
+        handleDM(message)
+    } else {
+        handleServerMessage(message)
     }
 });
 
+function handleDM(message) {
+    const logDict = formatMessageForLog(message, true);
+    const filePath = path.join(logsDir, `dm_${message.channel.id}.log`);
 
-client.on('messageReactionAdd', async (reaction, user) => {
+    fs.appendFileSync(filePath, JSON.stringify(logDict) + "\n");
+}
+
+function handleServerMessage(message) {
+    const logDict = formatMessageForLog(message, false);
+    const serverPath = path.join(logsDir, `${message.guild.name}_${message.guild.id}`);
+    if (!fs.existsSync(serverPath)) {
+        fs.mkdirSync(serverPath, { recursive: true });
+    }
+    const filePath = path.join(serverPath, `${message.channel.name}.log`);
+
+    fs.appendFileSync(filePath, JSON.stringify(logDict) + "\n");
+}
+
+function formatMessageForLog(message, isDM) {
+    const log = {
+        IsDM: isDM,
+        author: `${message.author.username}#${message.author.discriminator}`,
+        content: message.content,
+        timestamp: Math.floor(message.createdTimestamp / 1000),
+        milliseconds: message.createdTimestamp % 1000
+    };
+    return log;
+}
+
+async function sendGlowStats(message) {
+    const stats = await fetchGlowStats();
+    if (stats) {
+        const reply = `Glow price (Uniswap): $${(stats.uniswapPrice).toFixed(4)}\n` +
+            `Glow price (Contract): $${stats.contractPrice.toFixed(4)}\n` +
+            `Token holders: ${stats.tokenHolders}\n` +
+            `Number of farms: ${stats.numberOfFarms}\n` +
+            `Power output of Glow farms (last week): ${Math.round(stats.powerOutput)} KWh`;
+        message.channel.send(reply);
+    } else {
+        message.channel.send('Sorry, I could not fetch the stats.');
+    }
+}
+
+client.on(Events.MessageReactionAdd, async (reaction, user) => {
     if (reaction.partial) {
         // If the message this reaction belongs to was removed, the fetching might result in an API error, which we need to handle
         try {
