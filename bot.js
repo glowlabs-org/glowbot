@@ -61,18 +61,21 @@ async function fetchGlowStats() {
         const holdersResponse = await axios.get('https://www.glowstats.xyz/api/tokenHolders');
         const farmsResponse = await axios.get(`https://www.glowstats.xyz/api/farmCount`);
         const outputResponse = await axios.get('https://www.glowstats.xyz/api/weeklyOutput');
+        const carbonCreditsResponse = await axios.get('https://www.glowstats.xyz/api/carbonCredits');
 
         const priceData = priceResponse.data;
         const holdersData = holdersResponse.data;
         const farmsData = farmsResponse.data;
         const outputData = outputResponse.data;
+        const carbonCreditsData = carbonCreditsResponse.data;
 
         return {
             uniswapPrice: priceData.tokenPriceUniswap,
             contractPrice: priceData.tokenPriceContract / 10000,
             tokenHolders: holdersData.tokenHolderCount,
             numberOfFarms: farmsData[farmsData.length - 1].count,
-            powerOutput: outputData[outputData.length - 1].output / 1000000
+            powerOutput: outputData[outputData.length - 1].output / 1000000,
+            carbonCredits: carbonCreditsData.GCCSupply
         };
     } catch (error) {
         const msg = appendErrorToMessage('Error fetching glow stats: ', error)
@@ -136,7 +139,8 @@ async function sendGlowStats(message) {
             `Glow price (Contract): $${stats.contractPrice.toFixed(4)}\n` +
             `Token holders: ${stats.tokenHolders}\n` +
             `Number of farms: ${stats.numberOfFarms}\n` +
-            `Power output of Glow farms (last week): ${Math.round(stats.powerOutput)} KWh`;
+            `Power output of Glow farms (last week): ${Math.round(stats.powerOutput)} KWh\n` + 
+            `Carbon credits created (from finalized audits): ${stats.carbonCredits}`;
         message.channel.send(reply);
     } else {
         message.channel.send('Sorry, I could not fetch the stats.');
