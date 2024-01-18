@@ -139,7 +139,7 @@ async function sendGlowStats(message) {
             `Glow price (Contract): $${stats.contractPrice.toFixed(4)}\n` +
             `Token holders: ${stats.tokenHolders}\n` +
             `Number of farms: ${stats.numberOfFarms}\n` +
-            `Power output of Glow farms (last week): ${Math.round(stats.powerOutput)} KWh\n` + 
+            `Power output of Glow farms (current week): ${Math.round(stats.powerOutput)} KWh\n` + 
             `Carbon credits created (real time): ${stats.carbonCredits}`;
         message.channel.send(reply);
     } else {
