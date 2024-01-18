@@ -140,7 +140,7 @@ async function sendGlowStats(message) {
             `Token holders: ${stats.tokenHolders}\n` +
             `Number of farms: ${stats.numberOfFarms}\n` +
             `Power output of Glow farms (last week): ${Math.round(stats.powerOutput)} KWh\n` + 
-            `Carbon credits created (from finalized audits): ${stats.carbonCredits}`;
+            `Carbon credits created (real time): ${stats.carbonCredits}`;
         message.channel.send(reply);
     } else {
         message.channel.send('Sorry, I could not fetch the stats.');
