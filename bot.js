@@ -56,13 +56,16 @@ client.once('ready', () => {
 });
 
 async function fetchGlowStats() {
-    try {
-        const priceResponse = await axios.get('https://www.glowstats.xyz/api/tokenPrice');
-        const holdersResponse = await axios.get('https://www.glowstats.xyz/api/tokenHolders');
-        const farmsResponse = await axios.get(`https://www.glowstats.xyz/api/farmCount`);
-        const outputResponse = await axios.get('https://www.glowstats.xyz/api/weeklyOutput');
-        const carbonCreditsResponse = await axios.get('https://www.glowstats.xyz/api/carbonCredits');
+    const baseUrl = 'https://www.glowstats.xyz/api/'; 
+    const createUrl = (endpoint) => baseUrl + endpoint;
 
+    try {
+        const priceResponse = await axios.get(createUrl('tokenPrice'));
+        const holdersResponse = await axios.get(createUrl('tokenHolders'));
+        const farmsResponse = await axios.get(createUrl('farmCount'));
+        const outputResponse = await axios.get(createUrl('currentOutput'));
+        const carbonCreditsResponse = await axios.get(createUrl('carbonCredits'));
+        
         const priceData = priceResponse.data;
         const holdersData = holdersResponse.data;
         const farmsData = farmsResponse.data;
@@ -73,8 +76,8 @@ async function fetchGlowStats() {
             uniswapPrice: priceData.tokenPriceUniswap,
             contractPrice: priceData.tokenPriceContract / 10000,
             tokenHolders: holdersData.tokenHolderCount,
-            numberOfFarms: farmsData[farmsData.length - 1].count,
-            powerOutput: outputData[outputData.length - 1].output / 1000000,
+            numberOfFarms: farmsData[farmsData.length - 1].value,
+            powerOutput: outputData[0].value / 1000000,
             carbonCredits: carbonCreditsData.GCCSupply
         };
     } catch (error) {
@@ -139,7 +142,7 @@ async function sendGlowStats(message) {
             `Glow price (Contract): $${stats.contractPrice.toFixed(4)}\n` +
             `Token holders: ${stats.tokenHolders}\n` +
             `Number of farms: ${stats.numberOfFarms}\n` +
-            `Power output of Glow farms (current week): ${Math.round(stats.powerOutput)} KWh\n` + 
+            `Power output of Glow farms (current week): ${Math.round(stats.powerOutput)} kWh\n` + 
             `Carbon credits created (real time): ${stats.carbonCredits}`;
         message.channel.send(reply);
     } else {
