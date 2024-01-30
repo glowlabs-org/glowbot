@@ -3,6 +3,7 @@ const { Client, GatewayIntentBits, Events, Partials, ChannelType } = require('di
 const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
+const youtube = require('./monitors/youtube-monitor')
 
 const logsDir = './discord-logs';
 
@@ -53,6 +54,11 @@ client.once('ready', () => {
     if (!fs.existsSync(logsDir)) {
         fs.mkdirSync(logsDir, { recursive: true });
     }
+
+    // Check for youtube videos periodically
+    setInterval(async () => {
+        await youtube.checkYouTube(client);
+    }, 120000); // every two minutes
 });
 
 async function fetchGlowStats() {
