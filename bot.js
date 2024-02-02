@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
 const youtube = require('./monitors/youtube-monitor')
+const twitter = require('./monitors/twitter-monitor')
 
 const logsDir = './discord-logs';
 
@@ -58,6 +59,8 @@ client.once('ready', () => {
     // Check for youtube videos periodically
     setInterval(async () => {
         await youtube.checkYouTube(client);
+        await twitter.checkTwitter(client, 'DavidVorick');
+        await twitter.checkTwitter(client, 'glowFND');
     }, 120000); // every two minutes
 });
 
