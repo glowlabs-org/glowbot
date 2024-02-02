@@ -47,13 +47,16 @@ function appendErrorToMessage(msg, error) {
     return msg;
 }
 
-client.once('ready', () => {
+client.once('ready', async () => {
     logMessage('Ready!');
 
     // create logs directory if it doesn't exist
     if (!fs.existsSync(logsDir)) {
         fs.mkdirSync(logsDir, { recursive: true });
     }
+
+    // initialise youtube data
+    await youtube.init();
 
     // Check for youtube videos periodically
     setInterval(async () => {
