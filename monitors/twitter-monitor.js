@@ -4,21 +4,20 @@ const axios = require('axios');
 require('dotenv').config();
 
 const TWITTER_BEARER_TOKEN = process.env.TWITTER_BEARER_TOKEN;
-const DISCORD_CHANNEL_ID = 1169767222034567168; // #general channel
+const DISCORD_CHANNEL_ID = 1169767222034567168; 
 const twitterAccounts = {
     'DavidVorick': '1126889730227843132',
     'glowFND': '1126889730227843132',
 };
-const dbFilePath = path.join(__dirname, 'tweetDB.json'); // Adjust the directory as needed
+const dbFilePath = path.join(__dirname, 'tweetDB.json'); 
 
 async function checkTwitter(client, twitterHandle) {
-    // Initialize or read the database
     let db = {};
     if (fs.existsSync(dbFilePath)) {
         db = JSON.parse(fs.readFileSync(dbFilePath, 'utf8'));
     }
 
-    const url = `https://api.twitter.com/2/users/${twitterAccounts[twitterHandle]}/tweets`; // Fixed the URL
+    const url = `https://api.twitter.com/2/users/${twitterAccounts[twitterHandle]}/tweets`; 
     try {
         const response = await axios.get(url, {
             headers: {
