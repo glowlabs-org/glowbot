@@ -5,7 +5,7 @@ const path = require('path');
 const axios = require('axios');
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
 
-const DISCORD_CHANNEL_ID = '1169767222034567168' // #general channel
+const DISCORD_CHANNEL_ID = '1201983773030486126' // #glow-content channel
 const YOUTUBE_CHANNEL_ID = 'UCIw4NusO7Jcyut7DrTfL50A'
 let UPLOADS_PLAYLIST_ID = null
 
