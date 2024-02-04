@@ -3,6 +3,7 @@ const { Client, GatewayIntentBits, Events, Partials, ChannelType } = require('di
 const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
+const youtube = require('./monitors/youtube-monitor')
 
 const logsDir = './discord-logs';
 
@@ -46,13 +47,21 @@ function appendErrorToMessage(msg, error) {
     return msg;
 }
 
-client.once('ready', () => {
+client.once('ready', async () => {
     logMessage('Ready!');
 
     // create logs directory if it doesn't exist
     if (!fs.existsSync(logsDir)) {
         fs.mkdirSync(logsDir, { recursive: true });
     }
+
+    // initialise youtube data
+    await youtube.init();
+
+    // Check for youtube videos periodically
+    setInterval(async () => {
+        await youtube.checkYouTube(client);
+    }, 120000); // every two minutes
 });
 
 async function fetchGlowStats() {
