@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
 const youtube = require('./monitors/youtube-monitor')
+const { farmCountHelper } = require('./utils/farmCountHelper');
 
 const logsDir = './discord-logs';
 
@@ -71,23 +72,27 @@ async function fetchGlowStats() {
     try {
         const priceResponse = await axios.get(createUrl('tokenPrice'));
         const holdersResponse = await axios.get(createUrl('tokenHolders'));
-        const farmsResponse = await axios.get(createUrl('farmCount'));
+        const farmsResponse = await axios.get(createUrl('farmData'));
         const outputResponse = await axios.get(createUrl('currentOutput'));
-        const carbonCreditsResponse = await axios.get(createUrl('carbonCredits'));
+        const carbonCreditsCountResponse = await axios.get(createUrl('carbonCredits'));
+        const carbonCreditPriceResponse = await axios.get(createUrl('carbonCreditPrice'));
+
         
         const priceData = priceResponse.data;
         const holdersData = holdersResponse.data;
         const farmsData = farmsResponse.data;
         const outputData = outputResponse.data;
-        const carbonCreditsData = carbonCreditsResponse.data;
+        const carbonCreditsData = carbonCreditsCountResponse.data;
+        const carbonCreditPriceData = carbonCreditPriceResponse.data;
 
         return {
             uniswapPrice: priceData.tokenPriceUniswap,
             contractPrice: priceData.tokenPriceContract / 10000,
             tokenHolders: holdersData.tokenHolderCount,
-            numberOfFarms: farmsData[farmsData.length - 1].value,
+            numberOfFarms: farmCountHelper(farmsData),
             powerOutput: outputData[0].value / 1000000,
-            carbonCredits: carbonCreditsData.GCCSupply
+            carbonCredits: carbonCreditsData.GCCSupply,
+            carbonCreditPrice: carbonCreditPriceData.gccPrice
         };
     } catch (error) {
         const msg = appendErrorToMessage('Error fetching glow stats: ', error)
@@ -150,9 +155,10 @@ async function sendGlowStats(message) {
         const reply = `Glow price (Uniswap): $${(stats.uniswapPrice).toFixed(4)}\n` +
             `Glow price (Contract): $${stats.contractPrice.toFixed(4)}\n` +
             `Token holders: ${stats.tokenHolders}\n` +
-            `Number of farms: ${stats.numberOfFarms}\n` +
+            `Number of active farms: ${stats.numberOfFarms}\n` +
             `Power output of Glow farms (current week): ${Math.round(stats.powerOutput)} kWh\n` + 
-            `Carbon credits created (real time): ${stats.carbonCredits}`;
+            `Carbon credits created (real time): ${stats.carbonCredits}\n` +
+            `Carbon credit price at auction: $${Number(stats.carbonCreditPrice).toFixed(2)}`;
         message.channel.send(reply);
     } else {
         message.channel.send('Sorry, I could not fetch the stats.');
