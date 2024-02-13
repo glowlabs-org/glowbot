@@ -9,3 +9,6 @@ node_modules/
 
 # Intellij files
 .idea
+
+# db folder
+db/
