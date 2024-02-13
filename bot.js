@@ -4,10 +4,9 @@ const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
 const youtube = require('./monitors/youtube-monitor')
+const logger = require('./utils/log-util')
 
 const logsDir = './discord-logs';
-
-const logStream = fs.createWriteStream(path.join(__dirname, 'bot.log'), { flags: 'a' });
 
 const monitoredChannels = {
     '1126889730227843132': { // '#start-here' channel
@@ -30,25 +29,8 @@ const client = new Client({
 
 const token = process.env.DISCORD_BOT_TOKEN;
 
-function logMessage(message, isError = false) {
-    isError ? console.error(message) : console.log(message);
-    logStream.write(`${new Date().toISOString()} - ${message}\n`);
-}
-
-function appendErrorToMessage(msg, error) {
-    if (error) {
-        if (error.message) {
-            msg += error.message;
-        }
-        if (error.stack) {
-            msg += ' | stack: ' + error.stack;
-        }
-    }
-    return msg;
-}
-
 client.once('ready', async () => {
-    logMessage('Ready!');
+    logger.logMessage('Ready!');
 
     // create logs directory if it doesn't exist
     if (!fs.existsSync(logsDir)) {
@@ -84,8 +66,8 @@ async function fetchGlowStats() {
             powerOutput: outputData[outputData.length - 1].output / 1000000
         };
     } catch (error) {
-        const msg = appendErrorToMessage('Error fetching glow stats: ', error)
-        logMessage(msg, true)
+        const msg = logger.appendErrorToMessage('Error fetching glow stats: ', error)
+        logger.logMessage(msg, true)
         return null;
     }
 }
@@ -158,7 +140,7 @@ client.on(Events.MessageReactionAdd, async (reaction, user) => {
         try {
             await reaction.fetch();
         } catch (error) {
-            logMessage(appendErrorToMessage(`Something went wrong when fetching the message: ${error}. `, error), true);
+            logger.logMessage(logger.appendErrorToMessage(`Something went wrong when fetching the message: ${error}. `, error), true);
             return;
         }
     }
@@ -173,11 +155,11 @@ client.on(Events.MessageReactionAdd, async (reaction, user) => {
         let role = reaction.message.guild.roles.cache.get(monitoredChannels[channelId].roleId);
         if (guildMember && role) {
             guildMember.roles.add(role)
-                .then(() => logMessage(`Assigned role to ${user.tag}`))
-                .catch(error => logMessage(appendErrorToMessage(`Error assigning role: ${error}. `, error), true));
+                .then(() => logger.logMessage(`Assigned role to ${user.tag}`))
+                .catch(error => logger.logMessage(logger.appendErrorToMessage(`Error assigning role: ${error}. `, error), true));
         }
     }
 
 });
 
-client.login(token).catch(error => logMessage(appendErrorToMessage(`Login error: ${error}. `, error), true));
+client.login(token).catch(error => logger.logMessage(logger.appendErrorToMessage(`Login error: ${error}. `, error), true));
