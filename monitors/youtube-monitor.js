@@ -3,6 +3,8 @@ require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
+const logger = require('../utils/log-util')
+
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
 
 const DISCORD_CHANNEL_ID = '1201983773030486126' // #glow-content channel
@@ -26,12 +28,12 @@ async function init() {
 
             const latestVideos = await getLatestVideos(UPLOADS_PLAYLIST_ID, 10);
             latestVideos.forEach(video => pastVideos.push(video.snippet.resourceId.videoId));
-            pastVideos = JSON.stringify(pastVideos, null, 2);
 
-            fs.writeFileSync(dbFilePath, pastVideos);
+            fs.writeFileSync(dbFilePath, JSON.stringify(pastVideos, null, 2));
         }
     } catch (error) {
-        console.error(error);
+        let msg = logger.appendErrorToMessage('Error on init of youtube monitor. ', error);
+        logger.logMessage(msg, true);
         process.exit(1); // exit here as we cannot monitor youtube without this data initialised
     }
 }
@@ -53,7 +55,8 @@ async function checkYouTube(client) {
             }
         }
     } catch (error) {
-        console.error(error);
+        let msg = logger.appendErrorToMessage('Error checking youtube. ', error);
+        logger.logMessage(msg, true);
     }
 }
 
@@ -63,7 +66,8 @@ async function getUploadsPlaylistId() {
         const response = await axios.get(url);
         return response.data.items[0].contentDetails.relatedPlaylists.uploads;
     } catch (error) {
-        console.error('Error fetching uploads playlist ID:', error);
+        let msg = logger.appendErrorToMessage('Error fetching uploads playlist ID. ', error);
+        logger.logMessage(msg, true);
     }
 }
 
@@ -73,7 +77,8 @@ async function getLatestVideos(uploadsPlaylistId, maxResults) {
         const response = await axios.get(url);
         return response.data.items;  // Array of the latest videos
     } catch (error) {
-        console.error('Error fetching latest videos:', error);
+        let msg = logger.appendErrorToMessage('Error fetching latest videos. ', error);
+        logger.logMessage(msg, true);
     }
 }
 
