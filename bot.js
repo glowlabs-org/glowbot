@@ -5,6 +5,7 @@ const path = require('path');
 const axios = require('axios');
 const youtube = require('./monitors/youtube-monitor')
 const { farmCountHelper } = require('./utils/farmCountHelper');
+const { addresses } = require('./utils/addresses');
 const logger = require('./utils/log-util')
 
 const logsDir = './discord-logs';
@@ -82,6 +83,10 @@ async function fetchGlowStats() {
 client.on(Events.MessageCreate, async message => {
     if (message.content === '!stats') {
         await sendGlowStats(message)
+    }
+
+    if (message.content === '!ca') {
+        message.channel.send(addresses);
     }
 
     if (message.author.bot) return; // Ignore messages from bots
