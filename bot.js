@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
 const youtube = require('./monitors/youtube-monitor')
-const { farmCountHelper } = require('./utils/farmCountHelper');
+const { farmCountHelper } = require('./utils/farm-count-helper');
 const { addresses } = require('./utils/addresses');
 const logger = require('./utils/log-util')
 
