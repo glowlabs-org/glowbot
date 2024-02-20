@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
 const youtube = require('./monitors/youtube-monitor')
+const { farmCountHelper } = require('./utils/farmCountHelper');
 const logger = require('./utils/log-util')
 
 const logsDir = './discord-logs';
@@ -53,7 +54,7 @@ async function fetchGlowStats() {
     try {
         const priceResponse = await axios.get(createUrl('tokenPrice'));
         const holdersResponse = await axios.get(createUrl('tokenHolders'));
-        const farmsResponse = await axios.get(createUrl('farmCount'));
+        const farmsResponse = await axios.get(createUrl('farmData'));
         const outputResponse = await axios.get(createUrl('currentOutput'));
         const carbonCreditsResponse = await axios.get(createUrl('carbonCredits'));
         
@@ -67,7 +68,7 @@ async function fetchGlowStats() {
             uniswapPrice: priceData.tokenPriceUniswap,
             contractPrice: priceData.tokenPriceContract / 10000,
             tokenHolders: holdersData.tokenHolderCount,
-            numberOfFarms: farmsData[farmsData.length - 1].value,
+            numberOfFarms: farmCountHelper(farmsData),
             powerOutput: outputData[0].value / 1000000,
             carbonCredits: carbonCreditsData.GCCSupply
         };
@@ -132,7 +133,7 @@ async function sendGlowStats(message) {
         const reply = `Glow price (Uniswap): $${(stats.uniswapPrice).toFixed(4)}\n` +
             `Glow price (Contract): $${stats.contractPrice.toFixed(4)}\n` +
             `Token holders: ${stats.tokenHolders}\n` +
-            `Number of farms: ${stats.numberOfFarms}\n` +
+            `Number of active farms: ${stats.numberOfFarms}\n` +
             `Power output of Glow farms (current week): ${Math.round(stats.powerOutput)} kWh\n` + 
             `Carbon credits created (real time): ${stats.carbonCredits}`;
         message.channel.send(reply);
