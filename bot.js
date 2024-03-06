@@ -58,12 +58,14 @@ async function fetchGlowStats() {
         const farmsResponse = await axios.get(createUrl('farmData'));
         const outputResponse = await axios.get(createUrl('currentOutput'));
         const carbonCreditsResponse = await axios.get(createUrl('carbonCredits'));
+        const tokenResponse = await axios.get(createUrl('glowStats'));
         
         const priceData = priceResponse.data;
         const holdersData = holdersResponse.data;
         const farmsData = farmsResponse.data;
         const outputData = outputResponse.data;
         const carbonCreditsData = carbonCreditsResponse.data;
+        const tokenData = tokenResponse.data;
 
         return {
             uniswapPrice: priceData.tokenPriceUniswap,
@@ -71,7 +73,10 @@ async function fetchGlowStats() {
             tokenHolders: holdersData.tokenHolderCount,
             numberOfFarms: farmCountHelper(farmsData),
             powerOutput: outputData[0].value / 1000000,
-            carbonCredits: carbonCreditsData.GCCSupply
+            carbonCredits: carbonCreditsData.GCCSupply,
+            totalSupply: Math.round(tokenData.totalSupply),
+            circulatingSupply: Math.round(tokenData.circulatingSupply),
+            marketCap: Math.round(tokenData.marketCap)
         };
     } catch (error) {
         const msg = logger.appendErrorToMessage('Error fetching glow stats: ', error)
@@ -135,12 +140,18 @@ function formatMessageForLog(message, isDM) {
 async function sendGlowStats(message) {
     const stats = await fetchGlowStats();
     if (stats) {
-        const reply = `Glow price (Uniswap): $${(stats.uniswapPrice).toFixed(4)}\n` +
+        const reply = "**Token stats:**\n" +
+            `Glow price (Uniswap): $${(stats.uniswapPrice).toFixed(4)}\n` +
             `Glow price (Contract): $${stats.contractPrice.toFixed(4)}\n` +
-            `Token holders: ${stats.tokenHolders}\n` +
+            `Token holders: ${stats.tokenHolders.toLocaleString()}\n` +
+            `Total supply: ${stats.totalSupply.toLocaleString()}\n` +
+            `Circulating supply: ${stats.circulatingSupply.toLocaleString()}\n` +
+            `Market cap: $${stats.marketCap.toLocaleString()}\n\n` +
+            `**Farm stats:**\n` +
             `Number of active farms: ${stats.numberOfFarms}\n` +
             `Power output of Glow farms (current week): ${Math.round(stats.powerOutput)} kWh\n` + 
             `Carbon credits created (real time): ${stats.carbonCredits}`;
+
         message.channel.send(reply);
     } else {
         message.channel.send('Sorry, I could not fetch the stats.');
