@@ -7,7 +7,7 @@ const youtube = require('./monitors/youtube-monitor')
 const { farmCountHelper } = require('./utils/farm-count-helper');
 const { addresses } = require('./utils/addresses');
 const logger = require('./utils/log-util');
-const moderatorMonitor = require('./monitors/moderator-action-monitors')
+const moderatorMonitor = require('./monitors/moderator-action-monitor')
 
 const logsDir = './discord-logs';
 
