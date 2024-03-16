@@ -4,10 +4,11 @@ const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
 const logger = require('../utils/log-util')
+const { GLOW_CONTENT_CHANNEL_ID } = require('./../constants')
+
 
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
 
-const DISCORD_CHANNEL_ID = '1201983773030486126' // #glow-content channel
 const YOUTUBE_CHANNEL_ID = 'UCIw4NusO7Jcyut7DrTfL50A'
 let UPLOADS_PLAYLIST_ID = null
 
@@ -49,7 +50,7 @@ async function checkYouTube(client) {
                 pastVideos.push(latestVideoId)
                 fs.writeFileSync(dbFilePath, JSON.stringify(pastVideos, null, 2));
 
-                const channel = client.channels.cache.get(DISCORD_CHANNEL_ID);
+                const channel = client.channels.cache.get(GLOW_CONTENT_CHANNEL_ID);
                 const videoUrl = `https://www.youtube.com/watch?v=${latestVideoId}`;
                 channel.send(`New video posted by Alma: ${videoUrl}`);
             }

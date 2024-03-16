@@ -1,9 +1,11 @@
 require('dotenv').config();
+
 const { Client, GatewayIntentBits, Events, Partials, ChannelType } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
 const youtube = require('./monitors/youtube-monitor')
+const blog = require('./monitors/blog-monitor')
 const { farmCountHelper } = require('./utils/farm-count-helper');
 const { addresses } = require('./utils/addresses');
 const logger = require('./utils/log-util')
@@ -42,14 +44,23 @@ client.once('ready', async () => {
     // initialise youtube data
     await youtube.init();
 
-    // Check for youtube videos periodically
+    // initialise blog data
+    await blog.init();
+
+    // Check for youtube videos and blog posts periodically
     setInterval(async () => {
         await youtube.checkYouTube(client);
+        await blog.checkBlog(client);
     }, 120000); // every two minutes
+
+    setInterval(async () => {
+        await blog.checkBlog(client)
+    }, 5000); // every two minutes
+
 });
 
 async function fetchGlowStats() {
-    const baseUrl = 'https://www.glowstats.xyz/api/'; 
+    const baseUrl = 'https://www.glowstats.xyz/api/';
     const createUrl = (endpoint) => baseUrl + endpoint;
 
     try {
@@ -59,7 +70,7 @@ async function fetchGlowStats() {
         const outputResponse = await axios.get(createUrl('currentOutput'));
         const carbonCreditsResponse = await axios.get(createUrl('carbonCredits'));
         const tokenResponse = await axios.get(createUrl('glowStats'));
-        
+
         const priceData = priceResponse.data;
         const holdersData = holdersResponse.data;
         const farmsData = farmsResponse.data;
@@ -149,7 +160,7 @@ async function sendGlowStats(message) {
             `Market cap: $${stats.marketCap.toLocaleString()}\n\n` +
             `**Farm stats:**\n` +
             `Number of active farms: ${stats.numberOfFarms}\n` +
-            `Power output of Glow farms (current week): ${Math.round(stats.powerOutput)} kWh\n` + 
+            `Power output of Glow farms (current week): ${Math.round(stats.powerOutput)} kWh\n` +
             `Carbon credits created (real time): ${stats.carbonCredits}`;
 
         message.channel.send(reply);
