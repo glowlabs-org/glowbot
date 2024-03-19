@@ -143,6 +143,7 @@ function formatMessageForLog(message, isDM) {
 }
 
 async function sendGlowStats(message) {
+    const TOTAL_SUPPLY = 180000000;
     const stats = await fetchGlowStats();
     if (stats) {
         const reply = "**Token stats:**\n" +
@@ -151,11 +152,12 @@ async function sendGlowStats(message) {
             `Token holders: ${stats.tokenHolders.toLocaleString()}\n` +
             `Total supply: ${stats.totalSupply.toLocaleString()}\n` +
             `Circulating supply: ${stats.circulatingSupply.toLocaleString()}\n` +
-            `Market cap: $${stats.marketCap.toLocaleString()}\n\n` +
+            `Market cap: $${stats.marketCap.toLocaleString()}\n` +
+            `FDV (over 6 years): $${(stats.uniswapPrice * TOTAL_SUPPLY).toLocaleString()}\n\n` +
             `**Farm stats:**\n` +
             `Number of active farms: ${stats.numberOfFarms}\n` +
             `Power output of Glow farms (current week): ${Math.round(stats.powerOutput)} kWh\n` +
-            `Carbon credits created (real time): ${stats.carbonCredits}`;
+            `Carbon credits created (total): ${stats.carbonCredits}`;
 
         message.channel.send(reply);
     } else {
