@@ -11,6 +11,8 @@ const moderatorMonitor = require('./monitors/moderator-activity-monitor')
 
 const logsDir = './discord-logs';
 
+const TRADING_CHANNEL_ID = '1186193517404491788'
+
 const monitoredChannels = {
     '1126889730227843132': { // '#start-here' channel
         emojis: ['☀️'],
@@ -92,7 +94,11 @@ async function fetchGlowStats() {
 
 client.on(Events.MessageCreate, async message => {
     if (message.content === '!stats') {
-        await sendGlowStats(message)
+        if (message.channel.id === TRADING_CHANNEL_ID) {
+            await sendGlowStats(message)
+        } else {
+            message.channel.send(`Checking Glow stats is only supported in the channel <#${TRADING_CHANNEL_ID}>`)
+        }
     }
 
     if (message.content === '!ca') {
