@@ -94,7 +94,7 @@ async function fetchGlowStats() {
 
 client.on(Events.MessageCreate, async message => {
     if (message.content === '!stats') {
-        if (message.channel.id === TRADING_CHANNEL_ID) {
+        if (message.channel.type === ChannelType.DM || message.channel.id === TRADING_CHANNEL_ID) {
             await sendGlowStats(message)
         } else {
             message.channel.send(`Checking Glow stats is only supported in the channel <#${TRADING_CHANNEL_ID}>`)
