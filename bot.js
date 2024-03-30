@@ -8,9 +8,12 @@ const youtube = require('./monitors/youtube-monitor')
 const blog = require('./monitors/blog-monitor')
 const { farmCountHelper } = require('./utils/farm-count-helper');
 const { addresses } = require('./utils/addresses');
-const logger = require('./utils/log-util')
+const logger = require('./utils/log-util');
+const moderatorMonitor = require('./monitors/moderator-activity-monitor')
 
 const logsDir = './discord-logs';
+
+const TRADING_CHANNEL_ID = '1186193517404491788'
 
 const monitoredChannels = {
     '1126889730227843132': { // '#start-here' channel
@@ -24,8 +27,10 @@ const client = new Client({
     intents: [
         GatewayIntentBits.DirectMessages,
         GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMembers,
         GatewayIntentBits.GuildMessages,
         GatewayIntentBits.GuildMessageReactions,
+        GatewayIntentBits.GuildEmojisAndStickers,
         GatewayIntentBits.MessageContent,
     ],
     partials: [Partials.Message, Partials.Channel, Partials.Reaction],
@@ -35,6 +40,8 @@ const token = process.env.DISCORD_BOT_TOKEN;
 
 client.once('ready', async () => {
     logger.logMessage('Ready!');
+
+    moderatorMonitor.setupModerationListeners(client);
 
     // create logs directory if it doesn't exist
     if (!fs.existsSync(logsDir)) {
@@ -52,10 +59,6 @@ client.once('ready', async () => {
         await youtube.checkYouTube(client);
         await blog.checkBlog(client);
     }, 120000); // every two minutes
-
-    setInterval(async () => {
-        await blog.checkBlog(client)
-    }, 5000); // every two minutes
 
 });
 
@@ -98,7 +101,11 @@ async function fetchGlowStats() {
 
 client.on(Events.MessageCreate, async message => {
     if (message.content === '!stats') {
-        await sendGlowStats(message)
+        if (message.channel.type === ChannelType.DM || message.channel.id === TRADING_CHANNEL_ID) {
+            await sendGlowStats(message)
+        } else {
+            message.channel.send(`Checking Glow stats is only supported in the channel <#${TRADING_CHANNEL_ID}>`)
+        }
     }
 
     if (message.content === '!ca') {
@@ -149,6 +156,7 @@ function formatMessageForLog(message, isDM) {
 }
 
 async function sendGlowStats(message) {
+    const TOTAL_SUPPLY = 180000000;
     const stats = await fetchGlowStats();
     if (stats) {
         const reply = "**Token stats:**\n" +
@@ -157,11 +165,12 @@ async function sendGlowStats(message) {
             `Token holders: ${stats.tokenHolders.toLocaleString()}\n` +
             `Total supply: ${stats.totalSupply.toLocaleString()}\n` +
             `Circulating supply: ${stats.circulatingSupply.toLocaleString()}\n` +
-            `Market cap: $${stats.marketCap.toLocaleString()}\n\n` +
+            `Market cap: $${stats.marketCap.toLocaleString()}\n` +
+            `FDV (over 6 years): $${(stats.uniswapPrice * TOTAL_SUPPLY).toLocaleString()}\n\n` +
             `**Farm stats:**\n` +
             `Number of active farms: ${stats.numberOfFarms}\n` +
             `Power output of Glow farms (current week): ${Math.round(stats.powerOutput)} kWh\n` +
-            `Carbon credits created (real time): ${stats.carbonCredits}`;
+            `Carbon credits created (total): ${stats.carbonCredits}`;
 
         message.channel.send(reply);
     } else {
