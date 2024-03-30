@@ -10,15 +10,14 @@ const { farmCountHelper } = require('./utils/farm-count-helper');
 const { addresses } = require('./utils/addresses');
 const logger = require('./utils/log-util');
 const moderatorMonitor = require('./monitors/moderator-activity-monitor')
+const { START_HERE_CHANNEL_ID, TRADING_CHANNEL_ID, REGEN_ROLE_ID } = require('./constants')
 
 const logsDir = './discord-logs';
 
-const TRADING_CHANNEL_ID = '1186193517404491788'
-
 const monitoredChannels = {
-    '1126889730227843132': { // '#start-here' channel
+    [START_HERE_CHANNEL_ID]: { // '#start-here' channel
         emojis: ['☀️'],
-        roleId: '1193745444308795392' // 'regen' role
+        roleId: REGEN_ROLE_ID // 'regen' role
     }
 }
 
