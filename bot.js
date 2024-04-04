@@ -6,6 +6,7 @@ const path = require('path');
 const axios = require('axios');
 const youtube = require('./monitors/youtube-monitor')
 const blog = require('./monitors/blog-monitor')
+const audit = require('./monitors/audit-monitor')
 const { farmCountHelper } = require('./utils/farm-count-helper');
 const { addresses } = require('./utils/addresses');
 const logger = require('./utils/log-util');
@@ -47,16 +48,16 @@ client.once('ready', async () => {
         fs.mkdirSync(logsDir, { recursive: true });
     }
 
-    // initialise youtube data
+    // initialise our content monitors
     await youtube.init();
-
-    // initialise blog data
     await blog.init();
+    await audit.init();
 
-    // Check for youtube videos and blog posts periodically
+    // Check for youtube videos, audits and blog posts periodically
     setInterval(async () => {
         await youtube.checkYouTube(client);
         await blog.checkBlog(client);
+        await audit.checkAudits(client);
     }, 120000); // every two minutes
 
 });
