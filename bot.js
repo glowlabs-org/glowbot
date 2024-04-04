@@ -1,22 +1,23 @@
 require('dotenv').config();
+
 const { Client, GatewayIntentBits, Events, Partials, ChannelType } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
 const youtube = require('./monitors/youtube-monitor')
+const blog = require('./monitors/blog-monitor')
 const { farmCountHelper } = require('./utils/farm-count-helper');
 const { addresses } = require('./utils/addresses');
 const logger = require('./utils/log-util');
 const moderatorMonitor = require('./monitors/moderator-activity-monitor')
+const { START_HERE_CHANNEL_ID, TRADING_CHANNEL_ID, REGEN_ROLE_ID } = require('./constants')
 
 const logsDir = './discord-logs';
 
-const TRADING_CHANNEL_ID = '1186193517404491788'
-
 const monitoredChannels = {
-    '1126889730227843132': { // '#start-here' channel
+    [START_HERE_CHANNEL_ID]: { // '#start-here' channel
         emojis: ['☀️'],
-        roleId: '1193745444308795392' // 'regen' role
+        roleId: REGEN_ROLE_ID // 'regen' role
     }
 }
 
@@ -49,10 +50,15 @@ client.once('ready', async () => {
     // initialise youtube data
     await youtube.init();
 
-    // Check for youtube videos periodically
+    // initialise blog data
+    await blog.init();
+
+    // Check for youtube videos and blog posts periodically
     setInterval(async () => {
         await youtube.checkYouTube(client);
+        await blog.checkBlog(client);
     }, 120000); // every two minutes
+
 });
 
 async function fetchGlowStats() {
