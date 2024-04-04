@@ -3,6 +3,7 @@ const cheerio = require('cheerio');
 const logger = require('../utils/log-util')
 const fs = require('fs');
 const path = require('path');
+const fileUtil = require('../utils/file-util')
 const { EmbedBuilder } = require('discord.js');
 const { GLOW_CONTENT_CHANNEL_ID } = require('./../constants')
 
@@ -12,20 +13,15 @@ let pastBlogPosts = []
 
 async function init() {
     try {
+        pastBlogPosts = await fileUtil.getFileData(dbFilePath);
 
-        if (fs.existsSync(dbFilePath)) {
-            pastBlogPosts = JSON.parse(fs.readFileSync(dbFilePath, 'utf8'));
-        } else {
-            // create db folder if it doesn't exist already
-            if (!fs.existsSync(path.join(__dirname, '../db'))) {
-                fs.mkdirSync(path.join(__dirname, '../db'), { recursive: true });
-            }
-
+        if (!pastBlogPosts || pastBlogPosts.length == 0) {
             const latestBlogs = await fetchLatestBlogPosts();
             latestBlogs.forEach(blog => pastBlogPosts.push(blog));
 
             fs.writeFileSync(dbFilePath, JSON.stringify(pastBlogPosts, null, 2));
         }
+
     } catch (error) {
         let msg = logger.appendErrorToMessage('Error on init of blog monitor. ', error);
         logger.logMessage(msg, true);
