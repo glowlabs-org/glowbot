@@ -38,18 +38,36 @@ async function checkAudits(client) {
 
                 if (!auditsNotified.includes(auditId)) {
 
-                    // update our list and file
-                    auditsNotified = completedAuditShortIds;
-                    fs.writeFileSync(dbFilePath, JSON.stringify(auditsNotified, null, 2));
+                    if (isAuditReportPosted(auditId)) { // check that the audit report is available on the Glow website
+                        // update our list and file
+                        auditsNotified = completedAuditShortIds;
+                        fs.writeFileSync(dbFilePath, JSON.stringify(auditsNotified, null, 2));
 
-                    const channel = client.channels.cache.get(GLOW_CONTENT_CHANNEL_ID);
-                    channel.send(`A new audit was completed by Glow: https://www.glowfnd.org/audits/farm-${auditId}`);
+                        const channel = client.channels.cache.get(GLOW_CONTENT_CHANNEL_ID);
+                        channel.send(`A new audit was completed by Glow: https://www.glowfnd.org/audits/farm-${auditId}`);
+                    }
                 }
             })
         }
     } catch (error) {
         let msg = logger.appendErrorToMessage('Error checking audits. ', error);
         logger.logMessage(msg, true);
+    }
+}
+
+async function isAuditReportPosted(auditId) {
+    try {
+        // fetch the HTML content of the page
+        const response = await axios.get(`https://www.glowfnd.org/audits/farm-${auditId}`);
+        const htmlContent = response.data;
+
+        // check that it contains our farm id - this indicates the report has been posted and that the page exists
+        return htmlContent && htmlContent.includes(`Farm ${auditId}`)
+
+    } catch (error) {
+        let msg = logger.appendErrorToMessage('Error checking audit report on Glow. ', error);
+        logger.logMessage(msg, true);
+        return false
     }
 }
 
