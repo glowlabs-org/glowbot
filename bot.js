@@ -7,7 +7,7 @@ const axios = require('axios');
 const youtube = require('./monitors/youtube-monitor')
 const blog = require('./monitors/blog-monitor')
 const audit = require('./monitors/audit-monitor')
-const { farmCountHelper } = require('./utils/farm-count-helper');
+const { getTotalCarbonCredits } = require('./utils/carbon-credits-helper');
 const { addresses } = require('./utils/addresses');
 const logger = require('./utils/log-util');
 const moderatorMonitor = require('./monitors/moderator-activity-monitor')
@@ -69,25 +69,21 @@ async function fetchGlowStats() {
     try {
         const priceResponse = await axios.get(createUrl('tokenPrice'));
         const holdersResponse = await axios.get(createUrl('tokenHolders'));
-        const farmsResponse = await axios.get(createUrl('farmData'));
-        const outputResponse = await axios.get(createUrl('currentOutput'));
-        const carbonCreditsResponse = await axios.get(createUrl('carbonCredits'));
+        const allFarmDataResponse = await axios.get(createUrl('allData'));
         const tokenResponse = await axios.get(createUrl('glowStats'));
 
         const priceData = priceResponse.data;
         const holdersData = holdersResponse.data;
-        const farmsData = farmsResponse.data;
-        const outputData = outputResponse.data;
-        const carbonCreditsData = carbonCreditsResponse.data;
+        const allFarmData = allFarmDataResponse.data;
         const tokenData = tokenResponse.data;
 
         return {
             uniswapPrice: priceData.tokenPriceUniswap,
             contractPrice: priceData.tokenPriceContract / 10000,
             tokenHolders: holdersData.tokenHolderCount,
-            numberOfFarms: farmCountHelper(farmsData),
-            powerOutput: outputData[0].value / 1000000,
-            carbonCredits: carbonCreditsData.GCCSupply,
+            numberOfFarms: allFarmData.weeklyFarmCount[allFarmData.weeklyFarmCount.length - 1].value,
+            powerOutput: allFarmData.weeklyTotalOutput[allFarmData.weeklyTotalOutput.length -1].value,
+            carbonCredits: getTotalCarbonCredits(allFarmData.weeklyCarbonCredit),
             totalSupply: Math.round(tokenData.totalSupply),
             circulatingSupply: Math.round(tokenData.circulatingSupply),
             marketCap: Math.round(tokenData.marketCap)
@@ -170,7 +166,7 @@ async function sendGlowStats(message) {
             `**Farm stats:**\n` +
             `Number of active farms: ${stats.numberOfFarms}\n` +
             `Power output of Glow farms (current week): ${Math.round(stats.powerOutput)} kWh\n` +
-            `Carbon credits created (total): ${stats.carbonCredits}`;
+            `Carbon credits created (total): ${stats.carbonCredits.toFixed(3)}`;
 
         message.channel.send(reply);
     } else {
