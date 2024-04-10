@@ -11,7 +11,7 @@ const { getTotalCarbonCredits } = require('./utils/carbon-credits-helper');
 const { addresses } = require('./utils/addresses');
 const logger = require('./utils/log-util');
 const moderatorMonitor = require('./monitors/moderator-activity-monitor')
-const { START_HERE_CHANNEL_ID, TRADING_CHANNEL_ID, REGEN_ROLE_ID } = require('./constants')
+const { START_HERE_CHANNEL_ID, TEST_BOT_CHANNEL_ID, TRADING_CHANNEL_ID, REGEN_ROLE_ID } = require('./constants')
 
 const logsDir = './discord-logs';
 
@@ -82,7 +82,7 @@ async function fetchGlowStats() {
             contractPrice: priceData.tokenPriceContract / 10000,
             tokenHolders: holdersData.tokenHolderCount,
             numberOfFarms: allFarmData.weeklyFarmCount[allFarmData.weeklyFarmCount.length - 1].value,
-            powerOutput: allFarmData.weeklyTotalOutput[allFarmData.weeklyTotalOutput.length -1].value,
+            powerOutput: allFarmData.weeklyTotalOutput[allFarmData.weeklyTotalOutput.length - 1].value,
             carbonCredits: getTotalCarbonCredits(allFarmData.weeklyCarbonCredit),
             totalSupply: Math.round(tokenData.totalSupply),
             circulatingSupply: Math.round(tokenData.circulatingSupply),
@@ -97,7 +97,7 @@ async function fetchGlowStats() {
 
 client.on(Events.MessageCreate, async message => {
     if (message.content === '!stats') {
-        if (message.channel.type === ChannelType.DM || message.channel.id === TRADING_CHANNEL_ID) {
+        if (message.channel.type === ChannelType.DM || message.channel.id === TRADING_CHANNEL_ID || message.channel.id === TEST_BOT_CHANNEL_ID) {
             await sendGlowStats(message)
         } else {
             message.channel.send(`Checking Glow stats is only supported in the channel <#${TRADING_CHANNEL_ID}>`)

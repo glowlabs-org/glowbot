@@ -57,12 +57,8 @@ async function checkAudits(client) {
 
 async function isAuditReportPosted(auditId) {
     try {
-        // fetch the HTML content of the page
-        const response = await axios.get(`https://www.glowfnd.org/audits/farm-${auditId}`);
-        const htmlContent = response.data;
-
-        // check that it contains our farm id - this indicates the report has been posted and that the page exists
-        return htmlContent && htmlContent.includes(`Farm ${auditId}`)
+        const response = await axios.get(`https://www.glow.org/api/audits?shortId=${auditId}`);
+        return response.status === 200
 
     } catch (error) {
         let msg = logger.appendErrorToMessage('Error checking audit report on Glow. ', error);
