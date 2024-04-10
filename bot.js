@@ -162,7 +162,8 @@ async function sendGlowStats(message) {
             `Total supply: ${stats.totalSupply.toLocaleString()}\n` +
             `Circulating supply: ${stats.circulatingSupply.toLocaleString()}\n` +
             `Market cap: $${stats.marketCap.toLocaleString()}\n` +
-            `FDV (over 6 years): $${(stats.uniswapPrice * TOTAL_SUPPLY).toLocaleString()}\n\n` +
+            `FDV (over 6 years): $${(stats.uniswapPrice * TOTAL_SUPPLY).toLocaleString()}\n` +
+            `<https://www.defined.fi/eth/0x6fa09ffc45f1ddc95c1bc192956717042f142c5d?quoteToken=token1&cache=1dafc>\n\n` +
             `**Farm stats:**\n` +
             `Number of active farms: ${stats.numberOfFarms}\n` +
             `Power output of Glow farms (current week): ${Math.round(stats.powerOutput)} kWh\n` +
