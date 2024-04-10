@@ -11,10 +11,12 @@ usdg: 0xe010ec500720bE9EF3F82129E7eD2Ee1FB7955F2
 
 gcc: 0x21C46173591f39AfC1d2B634b74c98F0576A272B
 gcc-beta/usdg-glow (UniV2): 0xeed0974404f635aa5e5f6e4793d1a417798f164e
-gcc-beta/usdg-glow (Dexscreener): https://dexscreener.com/ethereum/0xeed0974404f635aa5e5f6e4793d1a417798f164e
 
 glow: 0xf4fbC617A5733EAAF9af08E1Ab816B103388d8B6
 usdg-glow/glw-beta (Uni V2): 0x6FA09ffC45F1dDC95c1bc192956717042f142c5d
-usdg-glow/glw-beta (Dexscreener): https://dexscreener.com/ethereum/0x6FA09ffC45F1dDC95c1bc192956717042f142c5d
-\`\`\``
+\`\`\`
+Charts:
+[gcc-beta/usdg-glow (Defined)](<https://www.defined.fi/eth/0xeed0974404f635aa5e5f6e4793d1a417798f164e?quoteToken=token1&cache=1dafc>)
+[usdg-glow/glw-beta (Defined)](<https://www.defined.fi/eth/0x6fa09ffc45f1ddc95c1bc192956717042f142c5d?quoteToken=token1&cache=1dafc>)
+`
 module.exports = { addresses };
