@@ -44,7 +44,8 @@ async function checkAudits(client) {
                         fs.writeFileSync(dbFilePath, JSON.stringify(auditsNotified, null, 2));
 
                         const channel = client.channels.cache.get(GLOW_CONTENT_CHANNEL_ID);
-                        channel.send(`A new audit was completed by Glow: https://www.glowfnd.org/audits/farm-${auditId}`);
+                        channel.send(`A new audit was completed by Glow: https://www.glow.org/audits/farm-${auditId}`);
+                        return;
                     }
                 }
             })
