@@ -34,11 +34,11 @@ async function checkAudits(client) {
         if (latestAudits && latestAudits.length > 0) {
             const completedAuditShortIds = getShortIdsOfCompletedAudits(latestAudits);
 
-            completedAuditShortIds.forEach(auditId => {
+            completedAuditShortIds.forEach(async auditId => {
 
                 if (!auditsNotified.includes(auditId)) {
 
-                    if (isAuditReportPosted(auditId)) { // check that the audit report is available on the Glow website
+                    if (await isAuditReportPosted(auditId)) { // check that the audit report is available on the Glow website
                         // update our list and file
                         auditsNotified = completedAuditShortIds;
                         fs.writeFileSync(dbFilePath, JSON.stringify(auditsNotified, null, 2));
