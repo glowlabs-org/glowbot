@@ -28,27 +28,23 @@ async function init() {
 
 async function checkAudits(client) {
     try {
-
         const latestAudits = await getLatestAudits();
-
         if (latestAudits && latestAudits.length > 0) {
             const completedAuditShortIds = getShortIdsOfCompletedAudits(latestAudits);
 
-            completedAuditShortIds.forEach(async auditId => {
-
+            for (const auditId of completedAuditShortIds) {
                 if (!auditsNotified.includes(auditId)) {
-
-                    if (await isAuditReportPosted(auditId)) { // check that the audit report is available on the Glow website
-                        // update our list and file
-                        auditsNotified = completedAuditShortIds;
-                        fs.writeFileSync(dbFilePath, JSON.stringify(auditsNotified, null, 2));
-
+                    if (await isAuditReportPosted(auditId)) {
+                        // Send notification
                         const channel = client.channels.cache.get(GLOW_CONTENT_CHANNEL_ID);
-                        channel.send(`A new audit was completed by Glow: https://www.glow.org/audits/farm-${auditId}`);
-                        return;
+                        await channel.send(`A new audit was completed by Glow: https://www.glow.org/audits/farm-${auditId}`);
+
+                        // Update notified list and file after successful send
+                        auditsNotified.push(auditId);
+                        await fs.promises.writeFile(dbFilePath, JSON.stringify(auditsNotified, null, 2));
                     }
                 }
-            })
+            }
         }
     } catch (error) {
         let msg = logger.appendErrorToMessage('Error checking audits. ', error);
