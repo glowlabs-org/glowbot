@@ -96,29 +96,34 @@ async function fetchGlowStats() {
 }
 
 client.on(Events.MessageCreate, async message => {
-    if (message.content === '!stats') {
-        if (message.channel.type === ChannelType.DM || message.channel.id === TRADING_CHANNEL_ID || message.channel.id === TEST_BOT_CHANNEL_ID) {
-            await sendGlowStats(message)
-        } else {
-            message.channel.send(`Checking Glow stats is only supported in the channel <#${TRADING_CHANNEL_ID}>`)
+    try {
+        if (message.content === '!stats') {
+            if (message.channel.type === ChannelType.DM || message.channel.id === TRADING_CHANNEL_ID || message.channel.id === TEST_BOT_CHANNEL_ID) {
+                await sendGlowStats(message)
+            } else {
+                message.channel.send(`Checking Glow stats is only supported in the channel <#${TRADING_CHANNEL_ID}>`)
+            }
         }
-    }
 
-    if (message.content === '!ca') {
-        message.channel.send(addresses);
-    }
+        if (message.content === '!ca') {
+            message.channel.send(addresses);
+        }
 
-    if (message.author.bot) return; // Ignore messages from bots
+        if (message.author.bot) return; // Ignore messages from bots
 
-    if (message.content === '!ping') {
-        message.channel.send('pong')
-    }
+        if (message.content === '!ping') {
+            message.channel.send('pong')
+        }
 
-    // log all other messages to a file
-    if (message.channel.type === ChannelType.DM) {
-        handleDM(message)
-    } else {
-        handleServerMessage(message)
+        // log all other messages to a file
+        if (message.channel.type === ChannelType.DM) {
+            handleDM(message)
+        } else {
+            handleServerMessage(message)
+        }
+    } catch (error) {
+        const msg = logger.appendErrorToMessage('Error handling message: ', error)
+        logger.logMessage(msg, true)
     }
 });
 
@@ -176,29 +181,34 @@ async function sendGlowStats(message) {
 }
 
 client.on(Events.MessageReactionAdd, async (reaction, user) => {
-    if (reaction.partial) {
-        // If the message this reaction belongs to was removed, the fetching might result in an API error, which we need to handle
-        try {
-            await reaction.fetch();
-        } catch (error) {
-            logger.logMessage(logger.appendErrorToMessage(`Something went wrong when fetching the message: ${error}. `, error), true);
-            return;
+    try {
+        if (reaction.partial) {
+            // If the message this reaction belongs to was removed, the fetching might result in an API error, which we need to handle
+            try {
+                await reaction.fetch();
+            } catch (error) {
+                logger.logMessage(logger.appendErrorToMessage(`Something went wrong when fetching the message: ${error}. `, error), true);
+                return;
+            }
         }
-    }
-    const channelId = reaction.message.channel.id
-    const emoji = reaction.emoji.name
+        const channelId = reaction.message.channel.id
+        const emoji = reaction.emoji.name
 
-    // received a 'no-prototype-builtins' warning from eslint here so calling hasOwnProperty this way to be safe
-    if (Object.prototype.hasOwnProperty.call(monitoredChannels, channelId) &&
-        monitoredChannels[channelId].emojis.includes(emoji)) {
+        // received a 'no-prototype-builtins' warning from eslint here so calling hasOwnProperty this way to be safe
+        if (Object.prototype.hasOwnProperty.call(monitoredChannels, channelId) &&
+            monitoredChannels[channelId].emojis.includes(emoji)) {
 
-        let guildMember = reaction.message.guild.members.cache.get(user.id);
-        let role = reaction.message.guild.roles.cache.get(monitoredChannels[channelId].roleId);
-        if (guildMember && role) {
-            guildMember.roles.add(role)
-                .then(() => logger.logMessage(`Assigned role to ${user.tag}`))
-                .catch(error => logger.logMessage(logger.appendErrorToMessage(`Error assigning role: ${error}. `, error), true));
+            let guildMember = reaction.message.guild.members.cache.get(user.id);
+            let role = reaction.message.guild.roles.cache.get(monitoredChannels[channelId].roleId);
+            if (guildMember && role) {
+                guildMember.roles.add(role)
+                    .then(() => logger.logMessage(`Assigned role to ${user.tag}`))
+                    .catch(error => logger.logMessage(logger.appendErrorToMessage(`Error assigning role: ${error}. `, error), true));
+            }
         }
+    } catch (error) {
+        const msg = logger.appendErrorToMessage('Error assigning role: ', error)
+        logger.logMessage(msg, true)
     }
 
 });
