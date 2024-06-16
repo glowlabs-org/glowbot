@@ -58,6 +58,10 @@ async function isAuditReportPosted(auditId) {
         return response.status === 200
 
     } catch (error) {
+        if (error.response && error.response.status === 404) {
+            // Do not log if the status is 404
+            return false;
+        }
         let msg = logger.appendErrorToMessage('Error checking audit report on Glow. ', error);
         logger.logMessage(msg, true);
         return false
