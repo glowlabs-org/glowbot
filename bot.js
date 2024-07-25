@@ -2,6 +2,7 @@ require('dotenv').config();
 
 const { Client, GatewayIntentBits, Events, Partials, ChannelType } = require('discord.js');
 const fs = require('fs');
+const packageJson = require('./package.json');
 const path = require('path');
 const axios = require('axios');
 const youtube = require('./monitors/youtube-monitor')
@@ -39,6 +40,7 @@ const client = new Client({
 const token = process.env.DISCORD_BOT_TOKEN;
 
 client.once('ready', async () => {
+
     logger.logMessage('Ready!');
 
     moderatorMonitor.setupModerationListeners(client);
@@ -53,14 +55,34 @@ client.once('ready', async () => {
     await blog.init();
     await audit.init();
 
-    // Check for youtube videos, audits and blog posts periodically
-    setInterval(async () => {
-        await youtube.checkYouTube(client);
-        await blog.checkBlog(client);
-        await audit.checkAudits(client);
-    }, 120000); // every two minutes
+    // initialise our global error handlers after bot has started successfully
+    initGlobalErrorHandlers()
 
+    try {
+
+        // Check for youtube videos, audits and blog posts periodically
+        setInterval(async () => {
+            await youtube.checkYouTube(client);
+            await blog.checkBlog(client);
+            await audit.checkAudits(client);
+        }, 1000); // every two minutes
+    } catch (error) {
+        const msg = logger.appendErrorToMessage('Error monitoring glow content: ', error)
+        logger.logMessage(msg, true)
+        return null;
+    }
 });
+
+// Global error handlers
+function initGlobalErrorHandlers() {
+    process.on('unhandledRejection', (reason, promise) => {
+        console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+    });
+
+    process.on('uncaughtException', (err) => {
+        console.error('Uncaught Exception:', err);
+    });
+}
 
 async function fetchGlowStats() {
     const baseUrl = 'https://www.glowstats.xyz/api/';
@@ -121,6 +143,12 @@ client.on(Events.MessageCreate, async message => {
         } else {
             handleServerMessage(message)
         }
+
+        // hidden version checker message 
+        if (message.content === '^lunaVersionCheck') {
+            message.channel.send(`Current version is ${packageJson.version}`)
+        }
+
     } catch (error) {
         const msg = logger.appendErrorToMessage('Error handling message: ', error)
         logger.logMessage(msg, true)
