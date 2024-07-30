@@ -12,7 +12,8 @@ const { getTotalCarbonCredits } = require('./utils/carbon-credits-helper');
 const { addresses } = require('./utils/addresses');
 const logger = require('./utils/log-util');
 const moderatorMonitor = require('./monitors/moderator-activity-monitor')
-const { START_HERE_CHANNEL_ID, TEST_BOT_CHANNEL_ID, TRADING_CHANNEL_ID, REGEN_ROLE_ID } = require('./constants')
+const { START_HERE_CHANNEL_ID, TEST_BOT_CHANNEL_ID, TRADING_CHANNEL_ID, REGEN_ROLE_ID } = require('./constants');
+const { getNumberOfFarms } = require('./utils/get-farm-data-helper');
 
 const logsDir = './discord-logs';
 
@@ -89,10 +90,19 @@ async function fetchGlowStats() {
     const createUrl = (endpoint) => baseUrl + endpoint;
 
     try {
-        const priceResponse = await axios.get(createUrl('tokenPrice'));
-        const holdersResponse = await axios.get(createUrl('tokenHolders'));
-        const allFarmDataResponse = await axios.get(createUrl('allData'));
-        const tokenResponse = await axios.get(createUrl('glowStats'));
+        const [
+            priceResponse,
+            holdersResponse,
+            allFarmDataResponse,
+            tokenResponse,
+            numberOfFarms
+        ] = await Promise.all([
+            axios.get(createUrl('tokenPrice')),
+            axios.get(createUrl('tokenHolders')),
+            axios.get(createUrl('allData')),
+            axios.get(createUrl('glowStats')),
+            getNumberOfFarms()
+        ]);
 
         const priceData = priceResponse.data;
         const holdersData = holdersResponse.data;
@@ -103,7 +113,7 @@ async function fetchGlowStats() {
             uniswapPrice: priceData.tokenPriceUniswap,
             contractPrice: priceData.tokenPriceContract / 10000,
             tokenHolders: holdersData.tokenHolderCount,
-            numberOfFarms: allFarmData.weeklyFarmCount[allFarmData.weeklyFarmCount.length - 1].value,
+            numberOfFarms: numberOfFarms.numActiveFarms,
             powerOutput: allFarmData.weeklyTotalOutput[allFarmData.weeklyTotalOutput.length - 1].value,
             carbonCredits: getTotalCarbonCredits(allFarmData.weeklyCarbonCredit),
             totalSupply: Math.round(tokenData.totalSupply),
@@ -111,8 +121,8 @@ async function fetchGlowStats() {
             marketCap: Math.round(tokenData.marketCap)
         };
     } catch (error) {
-        const msg = logger.appendErrorToMessage('Error fetching glow stats: ', error)
-        logger.logMessage(msg, true)
+        const msg = logger.appendErrorToMessage('Error fetching glow stats: ', error);
+        logger.logMessage(msg, true);
         return null;
     }
 }
