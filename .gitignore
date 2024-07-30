@@ -12,3 +12,6 @@ node_modules/
 
 # db folder
 db/
+
+# pnpm-lock
+pnpm-lock.yaml
