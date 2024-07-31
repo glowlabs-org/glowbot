@@ -66,7 +66,7 @@ client.once('ready', async () => {
             await youtube.checkYouTube(client);
             await blog.checkBlog(client);
             await audit.checkAudits(client);
-        }, 1000); // every two minutes
+        }, 120000); // every two minutes
     } catch (error) {
         const msg = logger.appendErrorToMessage('Error monitoring glow content: ', error)
         logger.logMessage(msg, true)
