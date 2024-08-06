@@ -31,18 +31,16 @@ async function checkAudits(client) {
         const latestAudits = await getLatestAudits();
         if (latestAudits && latestAudits.length > 0) {
             const completedAuditShortIds = getShortIdsOfCompletedAudits(latestAudits);
-
+            const auditsNotifiedSet = new Set(auditsNotified);
             for (const auditId of completedAuditShortIds) {
-                if (!auditsNotified.includes(auditId)) {
-                    if (await isAuditReportPosted(auditId)) {
-                        // Send notification
-                        const channel = client.channels.cache.get(GLOW_CONTENT_CHANNEL_ID);
-                        await channel.send(`A new audit was completed by Glow: https://www.glow.org/audits/farm-${auditId}`);
-
-                        // Update notified list and file after successful send
-                        auditsNotified.push(auditId);
-                        await fs.promises.writeFile(dbFilePath, JSON.stringify(auditsNotified, null, 2));
-                    }
+                if (!auditsNotifiedSet.has(auditId)) {
+                    const formattedAuditId = auditId.replace(/-/g, ',');
+                    // Send notification
+                    const channel = client.channels.cache.get(GLOW_CONTENT_CHANNEL_ID);
+                    await channel.send(`https://www.glow.org/audits/farm-${formattedAuditId}`);
+                    // Update notified list and file after successful send
+                    auditsNotified.push(auditId);
+                    await fs.promises.writeFile(dbFilePath, JSON.stringify(auditsNotified, null, 2));
                 }
             }
         }
@@ -52,26 +50,14 @@ async function checkAudits(client) {
     }
 }
 
-async function isAuditReportPosted(auditId) {
-    try {
-        const response = await axios.get(`https://www.glow.org/api/audits?shortId=${auditId}`);
-        return response.status === 200
-
-    } catch (error) {
-        let msg = logger.appendErrorToMessage('Error checking audit report on Glow. ', error);
-        logger.logMessage(msg, true);
-        return false;
-    }
-}
-
 function getShortIdsOfCompletedAudits(audits) {
     return audits
-        .filter(item => Object.prototype.hasOwnProperty.call(item.status, 'AuditCompleted'))
-        .map(item => item.short_id);
+        .filter(item => item.status === 'completed')
+        .map(item => item.devices.map(d => d.shortId).join('-'));
 }
 
 async function getLatestAudits() {
-    const url = 'https://fun-rust-production.up.railway.app/get_farm_statuses';
+    const url = 'https://gca-crm-backend-production-1f2a.up.railway.app/applications/completed';
     try {
         const response = await axios.get(url);
         return response.data;
@@ -81,4 +67,4 @@ async function getLatestAudits() {
     }
 }
 
-module.exports = { init, checkAudits, isAuditReportPosted }
+module.exports = { init, checkAudits }
