@@ -137,7 +137,7 @@ client.on(Events.MessageCreate, async message => {
             }
         }
 
-        if (message.content === '!ca') {
+        if (message.content === '!ca' || message.content === '!contract' || message.content === '!contracts') {
             message.channel.send(addresses);
         }
 
