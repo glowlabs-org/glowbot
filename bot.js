@@ -14,6 +14,7 @@ const logger = require('./utils/log-util');
 const moderatorMonitor = require('./monitors/moderator-activity-monitor')
 const { START_HERE_CHANNEL_ID, TEST_BOT_CHANNEL_ID, TRADING_CHANNEL_ID, REGEN_ROLE_ID } = require('./constants');
 const { getNumberOfFarms } = require('./utils/get-farm-data-helper');
+const { checkMessageForSpam } = require('./monitors/spam-monitor')
 
 const logsDir = './discord-logs';
 
@@ -129,6 +130,7 @@ async function fetchGlowStats() {
 
 client.on(Events.MessageCreate, async message => {
     try {
+
         if (message.content === '!stats') {
             if (message.channel.type === ChannelType.DM || message.channel.id === TRADING_CHANNEL_ID || message.channel.id === TEST_BOT_CHANNEL_ID) {
                 await sendGlowStats(message)
@@ -146,6 +148,8 @@ client.on(Events.MessageCreate, async message => {
         if (message.content === '!ping') {
             message.channel.send('pong')
         }
+
+        await checkMessageForSpam(client, message)
 
         // log all other messages to a file
         if (message.channel.type === ChannelType.DM) {
