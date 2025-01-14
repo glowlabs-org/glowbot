@@ -13,9 +13,8 @@ const { addresses } = require('./utils/addresses');
 const logger = require('./utils/log-util');
 const moderatorMonitor = require('./monitors/moderator-activity-monitor')
 const { START_HERE_CHANNEL_ID, TEST_BOT_CHANNEL_ID, TRADING_CHANNEL_ID, REGEN_ROLE_ID } = require('./constants');
-const { getNumberOfFarms } = require('./utils/get-farm-data-helper');
 const { checkMessageForSpam } = require('./monitors/spam-monitor')
-
+const { getNumberOfFarms } = require('./utils/get-farm-data-helper');
 const logsDir = './discord-logs';
 
 const monitoredChannels = {
@@ -87,39 +86,33 @@ function initGlobalErrorHandlers() {
 }
 
 async function fetchGlowStats() {
-    const baseUrl = 'https://www.glowstats.xyz/api/';
+    const baseUrl = 'https://glowstats-api-production.up.railway.app/';
     const createUrl = (endpoint) => baseUrl + endpoint;
 
     try {
         const [
-            priceResponse,
-            holdersResponse,
-            allFarmDataResponse,
-            tokenResponse,
-            numberOfFarms
+            tokenStatsResponse,
+            allDataResponse,
+            farmCountResponse
         ] = await Promise.all([
-            axios.get(createUrl('tokenPrice')),
-            axios.get(createUrl('tokenHolders')),
+            axios.get(createUrl('tokenStats')),
             axios.get(createUrl('allData')),
-            axios.get(createUrl('glowStats')),
             getNumberOfFarms()
         ]);
 
-        const priceData = priceResponse.data;
-        const holdersData = holdersResponse.data;
-        const allFarmData = allFarmDataResponse.data;
-        const tokenData = tokenResponse.data;
-
+        const tokenStats = tokenStatsResponse.data.GlowMetrics;
+        const allData = allDataResponse.data.farmsWeeklyMetrics;
+        const farmCount = farmCountResponse;
         return {
-            uniswapPrice: priceData.tokenPriceUniswap,
-            contractPrice: priceData.tokenPriceContract / 10000,
-            tokenHolders: holdersData.tokenHolderCount,
-            numberOfFarms: numberOfFarms.numActiveFarms,
-            powerOutput: allFarmData.weeklyTotalOutput[allFarmData.weeklyTotalOutput.length - 1].value,
-            carbonCredits: getTotalCarbonCredits(allFarmData.weeklyCarbonCredit),
-            totalSupply: Math.round(tokenData.totalSupply),
-            circulatingSupply: Math.round(tokenData.circulatingSupply),
-            marketCap: Math.round(tokenData.marketCap)
+            uniswapPrice: tokenStats.price,
+            contractPrice: tokenStats.glowPriceFromContract,
+            tokenHolders: tokenStats.holders,
+            totalSupply: Math.round(tokenStats.totalSupply),
+            circulatingSupply: Math.round(tokenStats.circulatingSupply),
+            marketCap: Math.round(tokenStats.marketCap),
+            numberOfFarms: farmCount,
+            powerOutput: allData[0].powerOutput,
+            carbonCredits: getTotalCarbonCredits(allData),
         };
     } catch (error) {
         const msg = logger.appendErrorToMessage('Error fetching glow stats: ', error);
@@ -201,6 +194,7 @@ function formatMessageForLog(message, isDM) {
 async function sendGlowStats(message) {
     const TOTAL_SUPPLY = 180000000;
     const stats = await fetchGlowStats();
+
     if (stats) {
         const reply = "**Token stats:**\n" +
             `Glow price (Uniswap): $${(stats.uniswapPrice).toFixed(4)}\n` +
@@ -213,8 +207,8 @@ async function sendGlowStats(message) {
             `<https://www.defined.fi/eth/0x6fa09ffc45f1ddc95c1bc192956717042f142c5d?quoteToken=token1&cache=1dafc>\n\n` +
             `**Farm stats:**\n` +
             `Number of active farms: ${stats.numberOfFarms}\n` +
-            `Power output of Glow farms (current week): ${Math.round(stats.powerOutput)} kWh\n` +
-            `Carbon credits created (total): ${stats.carbonCredits.toFixed(3)}`;
+            `Power output of Glow farms (current week): ${Math.round(stats.powerOutput).toLocaleString()} kWh\n` +
+            `Carbon credits created (total): ${Math.round(stats.carbonCredits).toLocaleString()}`;
 
         message.channel.send(reply);
     } else {
