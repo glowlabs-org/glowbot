@@ -100,12 +100,10 @@ async function fetchGlowStats() {
             getNumberOfFarms()
         ]);
 
-        // Validate response structure and provide defaults
         const tokenStats = tokenStatsResponse?.data?.GlowMetrics || {};
         const allData = allDataResponse?.data?.farmsWeeklyMetrics || [];
         const farmCount = farmCountResponse || 0;
 
-        // Ensure we have the required data
         if (!tokenStats.price || !allData.length) {
             throw new Error('Missing required data from API response');
         }
