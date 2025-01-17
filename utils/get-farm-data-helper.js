@@ -7,7 +7,7 @@ async function getNumberOfFarms() {
     return farmAudits.length;
   } catch (error) {
     console.error('Error fetching number of farms:', error.message);
-    return -1;
+    throw error;
   }
 }
 
