@@ -100,19 +100,26 @@ async function fetchGlowStats() {
             getNumberOfFarms()
         ]);
 
-        const tokenStats = tokenStatsResponse.data.GlowMetrics;
-        const allData = allDataResponse.data.farmsWeeklyMetrics;
-        const farmCount = farmCountResponse;
+        // Validate response structure and provide defaults
+        const tokenStats = tokenStatsResponse?.data?.GlowMetrics || {};
+        const allData = allDataResponse?.data?.farmsWeeklyMetrics || [];
+        const farmCount = farmCountResponse || 0;
+
+        // Ensure we have the required data
+        if (!tokenStats.price || !allData.length) {
+            throw new Error('Missing required data from API response');
+        }
+
         return {
-            uniswapPrice: tokenStats.price,
-            contractPrice: tokenStats.glowPriceFromContract,
-            tokenHolders: tokenStats.holders,
-            totalSupply: Math.round(tokenStats.totalSupply),
-            circulatingSupply: Math.round(tokenStats.circulatingSupply),
-            marketCap: Math.round(tokenStats.marketCap),
+            uniswapPrice: tokenStats.price || 0,
+            contractPrice: tokenStats.glowPriceFromContract || 0,
+            tokenHolders: tokenStats.holders || 0,
+            totalSupply: Math.round(tokenStats.totalSupply || 0),
+            circulatingSupply: Math.round(tokenStats.circulatingSupply || 0),
+            marketCap: Math.round(tokenStats.marketCap || 0),
             numberOfFarms: farmCount,
-            powerOutput: allData[0].powerOutput,
-            carbonCredits: getTotalCarbonCredits(allData),
+            powerOutput: allData[0]?.powerOutput || 0,
+            carbonCredits: getTotalCarbonCredits(allData) || 0,
         };
     } catch (error) {
         const msg = logger.appendErrorToMessage('Error fetching glow stats: ', error);
