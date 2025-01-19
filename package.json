@@ -1,6 +1,6 @@
 {
     "name": "regen-role-bot",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "description": "Discord bot for Glow",
     "main": "bot.js",
     "scripts": {

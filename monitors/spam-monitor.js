@@ -8,11 +8,11 @@ async function checkMessageForSpam(client, message) {
     const messageId = message.id;
     const timestamp = Date.now();
 
-    const member = await message.guild.members.fetch(userId);
-    const joinTimestamp = member.joinedTimestamp;
+    const member = await message.guild?.members?.fetch(userId);
+    const joinTimestamp = member?.joinedTimestamp;
 
     // Check if the user has been in the server for more than 15 minutes (900000 ms)
-    if (timestamp - joinTimestamp > 900000) {
+    if (!joinTimestamp || (timestamp - joinTimestamp > 900000)) {
         return;
     }
 
