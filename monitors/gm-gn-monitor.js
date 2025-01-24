@@ -20,7 +20,8 @@ async function checkMessageForGmGn(client, message) {
                 await msg.delete();
                 message.channel.send(`Please keep 'gm-gn' messages in the <#${GM_GN_CHANNEL_ID}> channel.`);
             } catch (err) {
-                logger.logMessage(`Could not delete message ${message.id}: Message ${err.message}`, true);
+                const msg = logger.appendErrorToMessage(`Could not delete message ${message.id}`, err);
+                logger.logMessage(msg, true);
             }
         }
     }
