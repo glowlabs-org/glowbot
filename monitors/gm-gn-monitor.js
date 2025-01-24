@@ -12,7 +12,10 @@ async function checkMessageForGmGn(client, message) {
     const content = message.content;
     const contentsNormalised = content?.toLowerCase().trim()
 
-    if (contentsNormalised === 'gm' || contentsNormalised === 'gn') {
+    if (contentsNormalised === 'gm' || contentsNormalised === 'gn'
+        || contentsNormalised === 'gmgm' || contentsNormalised === 'gngn'
+        || contentsNormalised === 'gm!' || contentsNormalised === 'gn!'
+    ) {
         const channel = client.channels.cache.get(channelId);
         if (channel) {
             try {
