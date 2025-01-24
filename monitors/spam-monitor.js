@@ -40,13 +40,15 @@ async function checkMessageForSpam(client, message) {
                         const msg = await channel.messages.fetch(activity.messageId);
                         await msg.delete();
                     } catch (err) {
-                        logger.logMessage(`Could not delete message ${activity.messageId}:`, true);
+                        const msg = logger.appendErrorToMessage(`Could not delete message ${message.id}. `, err);
+                        logger.logMessage(msg, true);
                     }
                 }
             }
             message.channel.send(`User ${message.author.tag} has been banned for excessive posting across channels shortly after joining.`);
         } catch (error) {
-            logger.logMessage(`Could not ban or delete messages for user ${message.author.tag}:`, true);
+            const msg = logger.appendErrorToMessage(`Could not ban or delete messages for user ${message.author.tag}. `, error);
+            logger.logMessage(msg, true);
         }
     }
 }
