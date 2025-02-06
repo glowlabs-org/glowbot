@@ -19,9 +19,10 @@ async function checkMessageForGreeting(client, message) {
         const channel = client.channels.cache.get(channelId);
         if (channel) {
             try {
+                const userId = message.author.id;
                 const msg = await channel.messages.fetch(message.id);
                 await msg.delete();
-                message.channel.send(`Please refrain from posting greeting messages so we can keep the chat clean.`);
+                message.channel.send(`Hey <@${userId}>, please refrain from posting greeting messages so we can keep the chat clean.`);
             } catch (err) {
                 const msg = logger.appendErrorToMessage(`Could not delete message ${message.id}. `, err);
                 logger.logMessage(msg, true);
