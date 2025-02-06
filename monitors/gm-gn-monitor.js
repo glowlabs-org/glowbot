@@ -1,8 +1,9 @@
 const logger = require('../utils/log-util')
 const { GM_GN_CHANNEL_ID } = require('./../constants');
 
+const greetings = ['gm', 'gn', 'yo', 'hey', 'hi', 'bye', 'sup', 'hello', 'heya', 'howdy', 'wassup', 'morning', 'night', 'cya', 'later', 'hola', 'ayy', 'oi', 'yo yo', 'hihi', 'hey hey', 'wazzup', 'greetings', 'evening', 'peace', 'farewell', 'take care', 'see ya', 'adios', 'cheers'];
 
-async function checkMessageForGmGn(client, message) {
+async function checkMessageForGreeting(client, message) {
     const channelId = message.channel.id;
 
     if (channelId === GM_GN_CHANNEL_ID) {
@@ -11,17 +12,16 @@ async function checkMessageForGmGn(client, message) {
 
     const content = message.content;
     const contentsNormalised = content?.toLowerCase().trim()
+    const contentsWithoutSpaces = contentsNormalised?.replace(' ', '')
+    const contentsWithoutExclamation = contentsWithoutSpaces?.replace('!', '')
 
-    if (contentsNormalised === 'gm' || contentsNormalised === 'gn'
-        || contentsNormalised === 'gmgm' || contentsNormalised === 'gngn'
-        || contentsNormalised === 'gm!' || contentsNormalised === 'gn!'
-    ) {
+    if (greetings.includes(contentsNormalised) || greetings.includes(contentsWithoutSpaces) || greetings.includes(contentsWithoutExclamation)) {
         const channel = client.channels.cache.get(channelId);
         if (channel) {
             try {
                 const msg = await channel.messages.fetch(message.id);
                 await msg.delete();
-                message.channel.send(`Please keep 'gm-gn' messages in the <#${GM_GN_CHANNEL_ID}> channel.`);
+                message.channel.send(`Please refrain from posting greeting messages so we can keep the chat clean.`);
             } catch (err) {
                 const msg = logger.appendErrorToMessage(`Could not delete message ${message.id}. `, err);
                 logger.logMessage(msg, true);
@@ -30,4 +30,4 @@ async function checkMessageForGmGn(client, message) {
     }
 }
 
-module.exports = { checkMessageForGmGn };
+module.exports = { checkMessageForGreeting };

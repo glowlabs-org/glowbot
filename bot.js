@@ -14,7 +14,7 @@ const logger = require('./utils/log-util');
 const moderatorMonitor = require('./monitors/moderator-activity-monitor')
 const { START_HERE_CHANNEL_ID, TEST_BOT_CHANNEL_ID, TRADING_CHANNEL_ID, REGEN_ROLE_ID } = require('./constants');
 const { checkMessageForSpam } = require('./monitors/spam-monitor')
-const { checkMessageForGmGn } = require('./monitors/gm-gn-monitor')
+const { checkMessageForGreeting } = require('./monitors/gm-gn-monitor')
 const { getNumberOfFarms } = require('./utils/get-farm-data-helper');
 const logsDir = './discord-logs';
 
@@ -149,7 +149,7 @@ client.on(Events.MessageCreate, async message => {
         }
 
         await checkMessageForSpam(client, message)
-        await checkMessageForGmGn(client, message)
+        await checkMessageForGreeting(client, message)
 
         // log all other messages to a file
         if (message.channel.type === ChannelType.DM) {
