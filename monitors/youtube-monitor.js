@@ -60,7 +60,7 @@ async function checkYouTube(client) {
 
                     const channel = client.channels.cache.get(GLOW_CONTENT_CHANNEL_ID);
                     const videoUrl = `https://www.youtube.com/watch?v=${latestVideoId}`;
-                    channel.send(`New video posted on YouTube by ${channelId}: ${videoUrl}`);
+                    channel.send(`New video posted on YouTube: ${videoUrl}`);
                 }
             }
         }
