@@ -12,7 +12,7 @@ const { getTotalCarbonCredits } = require('./utils/carbon-credits-helper');
 const { addresses } = require('./utils/addresses');
 const logger = require('./utils/log-util');
 const moderatorMonitor = require('./monitors/moderator-activity-monitor')
-const { START_HERE_CHANNEL_ID, TEST_BOT_CHANNEL_ID, TRADING_CHANNEL_ID, REGEN_ROLE_ID } = require('./constants');
+const { GLOW_MAIN_YOUTUBE_CHANNEL_ID, GLOW_REGEN_YOUTUBE_CHANNEL_ID, START_HERE_CHANNEL_ID, TEST_BOT_CHANNEL_ID, TRADING_CHANNEL_ID, REGEN_ROLE_ID } = require('./constants');
 const { checkMessageForSpam } = require('./monitors/spam-monitor')
 const { checkMessageForGreeting } = require('./monitors/gm-gn-monitor')
 const { getNumberOfFarms } = require('./utils/get-farm-data-helper');
@@ -53,7 +53,7 @@ client.once('ready', async () => {
     }
 
     // initialise our content monitors
-    await youtube.init();
+    await youtube.init([GLOW_MAIN_YOUTUBE_CHANNEL_ID, GLOW_REGEN_YOUTUBE_CHANNEL_ID]);
     await blog.init();
     await audit.init();
 
