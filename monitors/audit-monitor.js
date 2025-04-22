@@ -33,14 +33,16 @@ async function checkAudits(client) {
             const completedAuditShortIds = getShortIdsOfCompletedAudits(latestAudits);
             const auditsNotifiedSet = new Set(auditsNotified);
             for (const auditId of completedAuditShortIds) {
-                if (!auditsNotifiedSet.has(auditId)) {
+                if (auditId && !auditsNotifiedSet.has(auditId)) {
                     const formattedAuditId = auditId.replace(/-/g, ',');
-                    // Send notification
-                    const channel = client.channels.cache.get(GLOW_CONTENT_CHANNEL_ID);
-                    await channel.send(`https://www.glow.org/audits/farm-${formattedAuditId}`);
-                    // Update notified list and file after successful send
-                    auditsNotified.push(auditId);
-                    await fs.promises.writeFile(dbFilePath, JSON.stringify(auditsNotified, null, 2));
+                    if (formattedAuditId) {
+                        // Send notification
+                        const channel = client.channels.cache.get(GLOW_CONTENT_CHANNEL_ID);
+                        await channel.send(`https://www.glow.org/audits/farm-${formattedAuditId}`);
+                        // Update notified list and file after successful send
+                        auditsNotified.push(auditId);
+                        await fs.promises.writeFile(dbFilePath, JSON.stringify(auditsNotified, null, 2));
+                    }
                 }
             }
         }
