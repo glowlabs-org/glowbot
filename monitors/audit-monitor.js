@@ -6,7 +6,7 @@ const axios = require("axios");
 const logger = require("../utils/log-util");
 const fileUtil = require("../utils/file-util");
 
-const dbFilePath = path.join(__dirname, "../db/audit-db.json");
+const dbFilePath = path.join(__dirname, "../db/audit-db-v2.json");
 let auditsNotified = [];
 
 async function init() {
