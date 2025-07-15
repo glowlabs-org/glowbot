@@ -32,8 +32,8 @@ async function init() {
 function getWeekStartUTC(now) {
   const date = new Date(now.getTime());
   const day = date.getUTCDay();
-  const diff = day === 0 ? -6 : 1 - day;
-  date.setUTCDate(date.getUTCDate() + diff);
+  const diff = day;
+  date.setUTCDate(date.getUTCDate() - diff);
   date.setUTCHours(0, 0, 0, 0);
   return date;
 }
@@ -42,7 +42,7 @@ async function checkImpact(client, channelId) {
   try {
     const now = new Date();
     const weekStart = getWeekStartUTC(now);
-    const isPostTime = now.getUTCDay() === 1 && now.getUTCHours() === 0;
+    const isPostTime = now.getUTCDay() === 0 && now.getUTCHours() === 0;
     if (lastPostDate === null || (isPostTime && lastPostDate < weekStart)) {
       const currentMetrics = await fetchImpactMetrics();
       if (Object.keys(currentMetrics).length === 0) return;
