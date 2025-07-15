@@ -5,7 +5,8 @@
   "main": "bot.js",
   "scripts": {
     "test-audit": "node test-audit-monitor.js",
-    "test-blog": "node test-blog-monitor.js"
+    "test-blog": "node test-blog-monitor.js",
+    "test-impact": "node test-impact-monitor.js"
   },
   "author": "treefren",
   "license": "MIT",

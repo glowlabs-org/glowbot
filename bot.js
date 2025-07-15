@@ -14,6 +14,7 @@ const axios = require("axios");
 const youtube = require("./monitors/youtube-monitor");
 const blog = require("./monitors/blog-monitor");
 const audit = require("./monitors/audit-monitor");
+const impact = require("./monitors/impact-monitor");
 const { getTotalCarbonCredits } = require("./utils/carbon-credits-helper");
 const { addresses } = require("./utils/addresses");
 const logger = require("./utils/log-util");
@@ -73,6 +74,7 @@ client.once("ready", async () => {
   ]);
   await blog.init();
   await audit.init();
+  await impact.init();
 
   // initialise our global error handlers after bot has started successfully
   initGlobalErrorHandlers();
@@ -85,6 +87,7 @@ client.once("ready", async () => {
       await blog.checkBlog(client, GLOW_CONTENT_CHANNEL_ID);
 
       await audit.checkAudits(client, GLOW_CONTENT_CHANNEL_ID);
+      await impact.checkImpact(client, GLOW_CONTENT_CHANNEL_ID);
     }, 120000); // every two minutes
   } catch (error) {
     const msg = logger.appendErrorToMessage(
