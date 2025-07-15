@@ -4,9 +4,8 @@ const fs = require("fs");
 const path = require("path");
 const fileUtil = require("../utils/file-util");
 const { EmbedBuilder } = require("discord.js");
-const { TEST_BOT_CHANNEL_ID } = require("./../constants");
 
-const dbFilePath = path.join(__dirname, "../db/blog-db-v2-test.json");
+const dbFilePath = path.join(__dirname, "../db/blog-db-v2.json");
 
 let pastBlogPosts = [];
 
@@ -41,7 +40,7 @@ async function init() {
   }
 }
 
-async function checkBlog(client) {
+async function checkBlog(client, channelId) {
   try {
     let latestBlogs = await fetchLatestBlogPosts();
     if (latestBlogs && latestBlogs.length > 0) {
@@ -76,7 +75,7 @@ async function checkBlog(client) {
       console.log("newPosts", newPosts);
       if (newPosts.length > 0) {
         fs.writeFileSync(dbFilePath, JSON.stringify(pastBlogPosts, null, 2));
-        const channel = client.channels.cache.get(TEST_BOT_CHANNEL_ID);
+        const channel = client.channels.cache.get(channelId);
         for (const np of newPosts) {
           const embed = new EmbedBuilder()
             .setAuthor({

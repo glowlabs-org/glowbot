@@ -1,36 +1,31 @@
+require("dotenv").config();
+const { Client, GatewayIntentBits, Events } = require("discord.js");
 const blog = require("./monitors/blog-monitor");
-
-// Mock Discord client similar to the real one
-const mockClient = {
-  channels: {
-    cache: {
-      get: (channelId) => {
-        console.log(`📤 Getting channel: ${channelId}`);
-        return {
-          send: async (message) => {
-            console.log(`📤 Would send message to channel ${channelId}:`);
-            console.log(`   Message: ${JSON.stringify(message)}`);
-            return { id: "mock-message-id" };
-          },
-        };
-      },
-    },
-  },
-};
 
 async function testBlogMonitor() {
   console.log("🧪 Testing blog monitor...\n");
 
   try {
-    console.log("🚀 Initializing blog monitor...");
-    await blog.init();
-    console.log("✅ Blog monitor initialized successfully\n");
+    const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
-    console.log("📊 Running checkBlog...");
-    await blog.checkBlog(mockClient);
-    console.log("✅ checkBlog completed successfully\n");
+    const readyPromise = new Promise((resolve) => {
+      client.once(Events.ClientReady, async () => {
+        console.log("🚀 Initializing blog monitor...");
+        await blog.init();
+        console.log("✅ Blog monitor initialized successfully\n");
 
-    console.log("🎉 Test completed!");
+        console.log("📊 Running checkBlog...");
+        await blog.checkBlog(client, "1394701624554950727");
+        console.log("✅ checkBlog completed successfully\n");
+
+        console.log("🎉 Test completed!");
+        client.destroy();
+        resolve();
+      });
+    });
+
+    await client.login(process.env.DISCORD_BOT_TOKEN);
+    await readyPromise;
   } catch (error) {
     console.error("❌ Test failed:", error.message);
     console.error(error.stack);
@@ -42,4 +37,4 @@ if (require.main === module) {
   testBlogMonitor();
 }
 
-module.exports = { testBlogMonitor, mockClient };
+module.exports = { testBlogMonitor };

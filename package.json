@@ -4,7 +4,6 @@
   "description": "Discord bot for Glow",
   "main": "bot.js",
   "scripts": {
-    "test": "node test-audit-monitor.js",
     "test-audit": "node test-audit-monitor.js",
     "test-blog": "node test-blog-monitor.js"
   },

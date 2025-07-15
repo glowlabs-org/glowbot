@@ -5,7 +5,6 @@ const path = require("path");
 const axios = require("axios");
 const logger = require("../utils/log-util");
 const fileUtil = require("../utils/file-util");
-const { GLOW_CONTENT_CHANNEL_ID } = require("./../constants");
 
 const dbFilePath = path.join(__dirname, "../db/audit-db.json");
 let auditsNotified = [];
@@ -31,7 +30,7 @@ async function init() {
   }
 }
 
-async function checkAudits(client) {
+async function checkAudits(client, channelId) {
   try {
     const latestAudits = await getLatestAudits();
     if (latestAudits && latestAudits.length > 0) {
@@ -42,7 +41,7 @@ async function checkAudits(client) {
           if (auditId) {
             console.log("Sending notification for audit: ", auditId);
             // Send notification
-            const channel = client.channels.cache.get(GLOW_CONTENT_CHANNEL_ID);
+            const channel = client.channels.cache.get(channelId);
             await channel.send(`https://www.glow.org/audits/${auditId}`);
             // Update notified list and file after successful send
             auditsNotified.push(shortIds);
