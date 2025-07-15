@@ -1,95 +1,135 @@
-const axios = require('axios');
-const cheerio = require('cheerio');
-const logger = require('../utils/log-util')
-const fs = require('fs');
-const path = require('path');
-const fileUtil = require('../utils/file-util')
-const { EmbedBuilder } = require('discord.js');
-const { GLOW_CONTENT_CHANNEL_ID } = require('./../constants')
+const axios = require("axios");
+const logger = require("../utils/log-util");
+const fs = require("fs");
+const path = require("path");
+const fileUtil = require("../utils/file-util");
+const { EmbedBuilder } = require("discord.js");
+const { TEST_BOT_CHANNEL_ID } = require("./../constants");
 
-const dbFilePath = path.join(__dirname, '../db/blog-db.json');
+const dbFilePath = path.join(__dirname, "../db/blog-db-v2-test.json");
 
-let pastBlogPosts = []
+let pastBlogPosts = [];
 
 async function init() {
-    try {
-        pastBlogPosts = await fileUtil.getFileData(dbFilePath);
+  try {
+    pastBlogPosts = await fileUtil.getFileData(dbFilePath);
 
-        if (!pastBlogPosts || pastBlogPosts.length == 0) {
-            const latestBlogs = await fetchLatestBlogPosts();
-            latestBlogs.forEach(blog => pastBlogPosts.push(blog));
+    // if (!pastBlogPosts || pastBlogPosts.length == 0) {
+    //   let latestBlogs = await fetchLatestBlogPosts();
+    //   latestBlogs = latestBlogs.filter((post) => !post.hidden);
+    //   latestBlogs.forEach((blog) =>
+    //     pastBlogPosts.push({
+    //       slug: blog.slug,
+    //       title: blog.title,
+    //       link: `https://glow.org/blog/${blog.slug}`,
+    //       description: blog.description,
+    //       author: blog.author?.name || "Unknown",
+    //       date: blog.publishedAt,
+    //       image: blog.image,
+    //     })
+    //   );
 
-            fs.writeFileSync(dbFilePath, JSON.stringify(pastBlogPosts, null, 2));
-        }
-
-    } catch (error) {
-        let msg = logger.appendErrorToMessage('Error on init of blog monitor. ', error);
-        logger.logMessage(msg, true);
-        process.exit(1); // exit here as we cannot monitor blogs without this data initialised
-    }
+    //   fs.writeFileSync(dbFilePath, JSON.stringify(pastBlogPosts, null, 2));
+    // }
+  } catch (error) {
+    let msg = logger.appendErrorToMessage(
+      "Error on init of blog monitor. ",
+      error
+    );
+    logger.logMessage(msg, true);
+    process.exit(1); // exit here as we cannot monitor blogs without this data initialised
+  }
 }
 
 async function checkBlog(client) {
-    try {
-
-        const latestBlogs = await fetchLatestBlogPosts();
-        if (latestBlogs && latestBlogs.length > 0) {
-            const latestBlog = latestBlogs[0]
-
-            const isNewPost = !pastBlogPosts.some(post =>
-                post.title === latestBlog.title && post.link === latestBlog.link
-            );
-            if (isNewPost) {
-                pastBlogPosts.push(latestBlog)
-                fs.writeFileSync(dbFilePath, JSON.stringify(pastBlogPosts, null, 2));
-
-                const channel = client.channels.cache.get(GLOW_CONTENT_CHANNEL_ID);
-                const embed = new EmbedBuilder()
-                    .setAuthor({
-                        name: `Check out the latest blog post from ${latestBlog.author}!`,
-                        url: latestBlog.link
-                    })
-                    .setThumbnail('https://assets-global.website-files.com/652e93c47c75719bb499dcef/6553b9a5fa4a3bf0f3345ca3_favicon.png')
-                    .setDescription(latestBlog.description)
-                    .setTitle(latestBlog.title)
-                    .setURL(latestBlog.link)
-                    .setColor('#0099ff');
-
-                channel.send({ embeds: [embed] });
-            }
+  try {
+    let latestBlogs = await fetchLatestBlogPosts();
+    if (latestBlogs && latestBlogs.length > 0) {
+      latestBlogs = latestBlogs.filter(
+        (post) => !post.hidden && post.publishedAt && post.title && post.slug
+      );
+      latestBlogs.sort(
+        (a, b) => new Date(a.publishedAt) - new Date(b.publishedAt)
+      );
+      const pastSlugs = new Set(pastBlogPosts.map((p) => p.slug));
+      const newPosts = [];
+      for (const blog of latestBlogs) {
+        if (!pastSlugs.has(blog.slug)) {
+          const newPost = {
+            slug: blog.slug,
+            title: blog.title,
+            link: `https://glow.org/blog/${blog.slug}`,
+            description: blog.description || "",
+            author: blog.author?.name || "Unknown",
+            date: blog.publishedAt,
+            image: blog.image,
+          };
+          pastBlogPosts.push(newPost);
+          newPosts.push({
+            ...newPost,
+            category: blog.category,
+            readTime: blog.readTime,
+            avatar: blog.author?.avatar,
+          });
         }
-    } catch (error) {
-        let msg = logger.appendErrorToMessage('Error checking blogs. ', error);
-        logger.logMessage(msg, true);
+      }
+      console.log("newPosts", newPosts);
+      if (newPosts.length > 0) {
+        fs.writeFileSync(dbFilePath, JSON.stringify(pastBlogPosts, null, 2));
+        const channel = client.channels.cache.get(TEST_BOT_CHANNEL_ID);
+        for (const np of newPosts) {
+          const embed = new EmbedBuilder()
+            .setAuthor({
+              name: `Check out the new blog post from ${np.author}!`,
+              url: np.link,
+              iconURL: np.avatar
+                ? `https://glow.org/_next/image?url=${encodeURIComponent(
+                    np.avatar
+                  )}&w=96&q=75`
+                : undefined,
+            })
+            .setDescription(np.description)
+            .setTitle(np.title)
+            .setURL(np.link)
+            .setColor("#0099ff")
+            .setFooter({
+              text: `${np.category || ""} • ${
+                np.readTime || ""
+              } • Published on ${np.date}`,
+            });
+          if (np.image) {
+            const imageUrl = `https://glow.org/_next/image?url=${encodeURIComponent(
+              np.image
+            )}&w=3840&q=75`;
+            embed.setImage(imageUrl);
+          } else {
+            embed.setThumbnail(
+              "https://glow.org/_next/image?url=%2Fimages%2Fbranding.jpg&w=3840&q=75"
+            );
+          }
+
+          channel.send({ embeds: [embed] });
+        }
+      }
     }
+  } catch (error) {
+    let msg = logger.appendErrorToMessage("Error checking blogs. ", error);
+    logger.logMessage(msg, true);
+  }
 }
 
 const fetchLatestBlogPosts = async () => {
-    try {
-        const { data } = await axios.get('https://glowlabs.org/blog');
-        const $ = cheerio.load(data);
-
-        // This selector targets the "Latest articles" section
-        const latestPosts = [];
-        $('div[class="articles-featured-col-list w-dyn-items"] div[class="articles-featured-col-item w-dyn-item"]').each((index, element) => {
-            const postLink = $(element).find('a').attr('href'); // assuming the first 'a' tag within the item contains the link
-            const postTitle = $(element).find('h2').text(); // assuming the title is within an 'h2' tag
-            // Scope the selections for author, date, and description within each post element
-            const author = $(element).find('.article-blog-hero-content__date-name-wr p').first().text().trim();
-            const date = $(element).find('.article-blog-hero-content__date-name-wr p').eq(2).text().trim(); // Adjust the index if needed
-            const paragraphs = $(element).find('.blog-preview-item-text-wr p');
-            const description = paragraphs.last().text().trim(); // Only get the last <p> tag's text
-
-            const fullPostLink = `https://glowlabs.org${postLink}`;
-
-            latestPosts.push({ title: postTitle, link: fullPostLink, description: description, author: author, date: date });
-        });
-
-        return latestPosts;
-    } catch (error) {
-        let msg = logger.appendErrorToMessage('Error fetching latest blog posts. ', error);
-        logger.logMessage(msg, true);
-    }
+  try {
+    const response = await axios.get("https://glow.org/api/blog");
+    return response.data;
+  } catch (error) {
+    let msg = logger.appendErrorToMessage(
+      "Error fetching latest blog posts. ",
+      error
+    );
+    logger.logMessage(msg, true);
+    return [];
+  }
 };
 
-module.exports = { init, checkBlog }
+module.exports = { init, checkBlog };
