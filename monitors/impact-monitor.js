@@ -5,7 +5,7 @@ const path = require("path");
 const fileUtil = require("../utils/file-util");
 const { EmbedBuilder } = require("discord.js");
 
-const dbFilePath = path.join(__dirname, "../db/impact-db.json");
+const dbFilePath = path.join(__dirname, "../db/impact-db-v2.json");
 let lastMetrics = {};
 let lastPostDate = null;
 
@@ -29,31 +29,30 @@ async function init() {
   }
 }
 
+function getWeekStartUTC(now) {
+  const date = new Date(now.getTime());
+  const day = date.getUTCDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  date.setUTCDate(date.getUTCDate() + diff);
+  date.setUTCHours(0, 0, 0, 0);
+  return date;
+}
+
 async function checkImpact(client, channelId) {
   try {
     const now = new Date();
-    const isWednesday = now.getDay() === 3; // 0=Sun, 3=Wed
-    const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-
-    if (!isWednesday || (lastPostDate && lastPostDate > oneWeekAgo)) {
-      console.log("Not Wednesday or already posted this week");
-      return; // Not Wednesday or already posted this week
+    const weekStart = getWeekStartUTC(now);
+    const isPostTime = now.getUTCDay() === 1 && now.getUTCHours() === 0;
+    if (lastPostDate === null || (isPostTime && lastPostDate < weekStart)) {
+      const currentMetrics = await fetchImpactMetrics();
+      if (Object.keys(currentMetrics).length === 0) return;
+      const channel = client.channels.cache.get(channelId);
+      const embed = createImpactEmbed(currentMetrics);
+      await channel.send({ embeds: [embed] });
+      lastMetrics = currentMetrics;
+      lastPostDate = now;
+      await saveData();
     }
-
-    const currentMetrics = await fetchImpactMetrics();
-    if (Object.keys(currentMetrics).length === 0) {
-      console.log("No metrics found");
-      return;
-    }
-
-    // Always post on Wednesday, even if unchanged, as it's a weekly update
-    const channel = client.channels.cache.get(channelId);
-    const embed = createImpactEmbed(currentMetrics);
-    await channel.send({ embeds: [embed] });
-
-    lastMetrics = currentMetrics;
-    lastPostDate = now;
-    await saveData();
   } catch (error) {
     let msg = logger.appendErrorToMessage(
       "Error checking impact metrics. ",
@@ -119,7 +118,7 @@ function createImpactEmbed(metrics) {
         inline: false,
       }
     )
-    .setFooter({ text: "Data from Glow API" });
+    .setFooter({ text: "Data from Glow Impact API" });
 }
 
 async function saveData() {
