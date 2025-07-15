@@ -83,10 +83,8 @@ client.once("ready", async () => {
     // Check for youtube videos, audits and blog posts periodically
     setInterval(async () => {
       await youtube.checkYouTube(client);
-
-      await blog.checkBlog(client, GLOW_CONTENT_CHANNEL_ID);
-
       await audit.checkAudits(client, GLOW_CONTENT_CHANNEL_ID);
+      await blog.checkBlog(client, GLOW_CONTENT_CHANNEL_ID);
       await impact.checkImpact(client, GLOW_CONTENT_CHANNEL_ID);
     }, 120000); // every two minutes
   } catch (error) {
