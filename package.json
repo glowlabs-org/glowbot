@@ -6,7 +6,8 @@
   "scripts": {
     "test-audit": "node test-audit-monitor.js",
     "test-blog": "node test-blog-monitor.js",
-    "test-impact": "node test-impact-monitor.js"
+    "test-impact": "node test-impact-monitor.js",
+    "test-press": "node test-press-monitor.js"
   },
   "author": "treefren",
   "license": "MIT",

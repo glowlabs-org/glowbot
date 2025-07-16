@@ -15,6 +15,7 @@ const youtube = require("./monitors/youtube-monitor");
 const blog = require("./monitors/blog-monitor");
 const audit = require("./monitors/audit-monitor");
 const impact = require("./monitors/impact-monitor");
+const press = require("./monitors/press-monitor");
 const { getTotalCarbonCredits } = require("./utils/carbon-credits-helper");
 const { addresses } = require("./utils/addresses");
 const logger = require("./utils/log-util");
@@ -75,6 +76,7 @@ client.once("ready", async () => {
   await blog.init();
   await audit.init();
   await impact.init();
+  await press.init();
 
   // initialise our global error handlers after bot has started successfully
   initGlobalErrorHandlers();
@@ -83,9 +85,14 @@ client.once("ready", async () => {
     // Check for youtube videos, audits and blog posts periodically
     setInterval(async () => {
       await youtube.checkYouTube(client);
+      console.log("blog.checkBlog()");
+      await blog.checkBlog(client, TEST_BOT_CHANNEL_ID);
+      console.log("audit.checkAudits()");
       await audit.checkAudits(client, GLOW_CONTENT_CHANNEL_ID);
-      await blog.checkBlog(client, GLOW_CONTENT_CHANNEL_ID);
+      console.log("impact.checkImpact()");
       await impact.checkImpact(client, GLOW_CONTENT_CHANNEL_ID);
+      console.log("press.checkPress()");
+      await press.checkPress(client, GLOW_CONTENT_CHANNEL_ID);
     }, 120000); // every two minutes
   } catch (error) {
     const msg = logger.appendErrorToMessage(
