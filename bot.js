@@ -19,6 +19,7 @@ const press = require("./monitors/press-monitor");
 const { getTotalCarbonCredits } = require("./utils/carbon-credits-helper");
 const { addresses } = require("./utils/addresses");
 const logger = require("./utils/log-util");
+const { getGlowHolderCount } = require("./utils/ponder-helper");
 const moderatorMonitor = require("./monitors/moderator-activity-monitor");
 const {
   GLOW_MAIN_YOUTUBE_CHANNEL_ID,
@@ -120,16 +121,22 @@ async function fetchGlowStats() {
   const createUrl = (endpoint) => baseUrl + endpoint;
 
   try {
-    const [tokenStatsResponse, allDataResponse, farmCountResponse] =
-      await Promise.all([
-        axios.get(createUrl("tokenStats")),
-        axios.get(createUrl("allData")),
-        getNumberOfFarms(),
-      ]);
+    const [
+      tokenStatsResponse,
+      allDataResponse,
+      farmCountResponse,
+      tokenHoldersResponse,
+    ] = await Promise.all([
+      axios.get(createUrl("tokenStats")),
+      axios.get(createUrl("allData")),
+      getNumberOfFarms(),
+      getGlowHolderCount(),
+    ]);
 
     const tokenStats = tokenStatsResponse?.data?.GlowMetrics || {};
     const allData = allDataResponse?.data?.farmsWeeklyMetrics || [];
     const farmCount = farmCountResponse || 0;
+    const tokenHolders = tokenHoldersResponse || 0;
 
     if (!tokenStats.price || !allData.length) {
       throw new Error("Missing required data from API response");
@@ -138,7 +145,7 @@ async function fetchGlowStats() {
     return {
       uniswapPrice: tokenStats.price || 0,
       contractPrice: tokenStats.glowPriceFromContract || 0,
-      tokenHolders: tokenStats.holders || 0,
+      tokenHolders,
       totalSupply: Math.round(tokenStats.totalSupply || 0),
       circulatingSupply: Math.round(tokenStats.circulatingSupply || 0),
       marketCap: Math.round(tokenStats.marketCap || 0),

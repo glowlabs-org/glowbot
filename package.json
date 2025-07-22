@@ -7,7 +7,8 @@
     "test-audit": "node test-audit-monitor.js",
     "test-blog": "node test-blog-monitor.js",
     "test-impact": "node test-impact-monitor.js",
-    "test-press": "node test-press-monitor.js"
+    "test-press": "node test-press-monitor.js",
+    "test-ponder": "node test-ponder-helper.js"
   },
   "author": "treefren",
   "license": "MIT",
