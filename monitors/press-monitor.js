@@ -12,6 +12,35 @@ let pastPressPosts = [];
 async function init() {
   try {
     pastPressPosts = await fileUtil.getFileData(dbFilePath);
+
+    // Initialize with existing press posts if database is empty
+    if (!pastPressPosts || pastPressPosts.length === 0) {
+      let latestPress = await fetchLatestPressPosts();
+      if (latestPress && latestPress.length > 0) {
+        latestPress = latestPress.filter(
+          (post) => post.date && post.title && post.href
+        );
+
+        latestPress.forEach((press) => {
+          pastPressPosts.push({
+            href: press.href,
+            title: press.title,
+            media: press.media || "Unknown",
+            date: press.date,
+            excerpt: press.excerpt || "",
+            tags: press.tags || [],
+            image: press.image,
+            isTwitter: press.isTwitter || false,
+            featured: press.featured || false,
+          });
+        });
+
+        fs.writeFileSync(dbFilePath, JSON.stringify(pastPressPosts, null, 2));
+        console.log(
+          `Initialized press database with ${pastPressPosts.length} existing posts`
+        );
+      }
+    }
   } catch (error) {
     let msg = logger.appendErrorToMessage(
       "Error on init of press monitor. ",
