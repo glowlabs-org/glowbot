@@ -60,8 +60,29 @@ async function checkAudits(client, channelId) {
 }
 
 function getShortIdsOfCompletedAudits(audits) {
+  const nowUTC = Date.now(); // UTC timestamp in milliseconds
+  const TEN_MINUTES_MS = 10 * 60 * 1000; // 10 minutes in milliseconds
+
   return audits
-    .filter((item) => item.status === "completed")
+    .filter((item) => {
+      // Must be completed status
+      if (item.status !== "completed") {
+        return false;
+      }
+
+      // Must have farm with auditCompleteDate
+      if (!item.farm || !item.farm.auditCompleteDate) {
+        return false;
+      }
+
+      // Check if 10 minutes have passed since auditCompleteDate
+      // Convert auditCompleteDate to UTC timestamp for timezone-independent comparison
+      const auditCompleteDate = new Date(item.farm.auditCompleteDate);
+      const auditCompleteUTC = auditCompleteDate.getTime();
+      const timeSinceCompletion = nowUTC - auditCompleteUTC;
+
+      return timeSinceCompletion >= TEN_MINUTES_MS;
+    })
     .map((item) => {
       return {
         shortIds: item.devices.map((d) => d.shortId).join("-"),
