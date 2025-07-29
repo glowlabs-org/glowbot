@@ -87,7 +87,7 @@ client.once("ready", async () => {
     setInterval(async () => {
       await youtube.checkYouTube(client);
       console.log("blog.checkBlog()");
-      await blog.checkBlog(client, TEST_BOT_CHANNEL_ID);
+      await blog.checkBlog(client, GLOW_CONTENT_CHANNEL_ID);
       console.log("audit.checkAudits()");
       await audit.checkAudits(client, GLOW_CONTENT_CHANNEL_ID);
       console.log("impact.checkImpact()");
