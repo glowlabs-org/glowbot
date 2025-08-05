@@ -33,6 +33,7 @@ const {
 const { checkMessageForSpam } = require("./monitors/spam-monitor");
 const { checkMessageForGreeting } = require("./monitors/gm-gn-monitor");
 const { getNumberOfFarms } = require("./utils/get-farm-data-helper");
+const { fetchContractsData } = require("./utils/contracts-data-helper");
 const logsDir = "./discord-logs";
 
 const monitoredChannels = {
@@ -126,11 +127,13 @@ async function fetchGlowStats() {
       allDataResponse,
       farmCountResponse,
       tokenHoldersResponse,
+      contractsData,
     ] = await Promise.all([
       axios.get(createUrl("tokenStats")),
       axios.get(createUrl("allData")),
       getNumberOfFarms(),
       getGlowHolderCount(),
+      fetchContractsData(),
     ]);
 
     const tokenStats = tokenStatsResponse?.data?.GlowMetrics || {};
@@ -152,6 +155,7 @@ async function fetchGlowStats() {
       numberOfFarms: farmCount,
       powerOutput: allData[0]?.powerOutput || 0,
       carbonCredits: getTotalCarbonCredits(allData) || 0,
+      contractsData,
     };
   } catch (error) {
     const msg = logger.appendErrorToMessage(
@@ -254,6 +258,12 @@ async function sendGlowStats(message) {
       "**Token stats:**\n" +
       `Glow price (Uniswap): $${stats.uniswapPrice.toFixed(4)}\n` +
       `Glow price (Contract): $${stats.contractPrice.toFixed(4)}\n` +
+      `USDC balance of redemption contract: $${
+        stats.contractsData?.usdcInRedemption?.toLocaleString() || "N/A"
+      }\n` +
+      `USDG liquidity in GLW/USDG pool: ${
+        stats.contractsData?.usdgLiquidityInPool?.toLocaleString() || "N/A"
+      }\n` +
       `Token holders: ${stats.tokenHolders.toLocaleString()}\n` +
       `Total supply: ${stats.totalSupply.toLocaleString()}\n` +
       `Circulating supply: ${stats.circulatingSupply.toLocaleString()}\n` +

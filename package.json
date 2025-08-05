@@ -8,7 +8,8 @@
     "test-blog": "node test-blog-monitor.js",
     "test-impact": "node test-impact-monitor.js",
     "test-press": "node test-press-monitor.js",
-    "test-ponder": "node test-ponder-helper.js"
+    "test-ponder": "node test-ponder-helper.js",
+    "test-contracts": "node test-contracts-data-helper.js"
   },
   "author": "treefren",
   "license": "MIT",
@@ -16,7 +17,8 @@
     "axios": "^1.6.5",
     "cheerio": "^1.0.0-rc.12",
     "discord.js": "^14.14.1",
-    "dotenv": "^16.3.1"
+    "dotenv": "^16.3.1",
+    "viem": "^2.33.2"
   },
   "devDependencies": {
     "eslint": "^8.56.0"
