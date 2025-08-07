@@ -254,23 +254,19 @@ async function sendGlowStats(message) {
   const stats = await fetchGlowStats();
 
   if (stats) {
+    const lowerPrice = Math.min(stats.uniswapPrice, stats.contractPrice);
+
     const reply =
       "**Token stats:**\n" +
-      `Glow price (Uniswap): $${stats.uniswapPrice.toFixed(4)}\n` +
-      `Glow price (Contract): $${stats.contractPrice.toFixed(4)}\n` +
-      `USDC balance of redemption contract: $${
-        stats.contractsData?.usdcInRedemption?.toLocaleString() || "N/A"
-      }\n` +
-      `USDG liquidity in GLW/USDG pool: ${
+      `Glow price: $${lowerPrice.toFixed(4)}\n` +
+      `Uniswap Liquidity: ${
         stats.contractsData?.usdgLiquidityInPool?.toLocaleString() || "N/A"
       }\n` +
       `Token holders: ${stats.tokenHolders.toLocaleString()}\n` +
       `Total supply: ${stats.totalSupply.toLocaleString()}\n` +
       `Circulating supply: ${stats.circulatingSupply.toLocaleString()}\n` +
       `Market cap: $${stats.marketCap.toLocaleString()}\n` +
-      `FDV (over 6 years): $${(
-        stats.uniswapPrice * TOTAL_SUPPLY
-      ).toLocaleString()}\n` +
+      `FDV (over 6 years): $${(lowerPrice * TOTAL_SUPPLY).toLocaleString()}\n` +
       `<https://www.defined.fi/eth/0x6fa09ffc45f1ddc95c1bc192956717042f142c5d?quoteToken=token1&cache=1dafc>\n\n` +
       `**Farm stats:**\n` +
       `Number of active farms: ${stats.numberOfFarms}\n` +

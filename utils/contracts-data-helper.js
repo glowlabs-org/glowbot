@@ -105,13 +105,13 @@ async function getUSDGLiquidityInPool() {
  * Extend this function as new requirements arise.
  */
 async function fetchContractsData() {
-  const [usdcInRedemption, usdgLiquidityInPool] = await Promise.all([
-    getUSDCBalanceOfRedemptionContract(),
+  const [usdgLiquidityInPool] = await Promise.all([
+    // getUSDCBalanceOfRedemptionContract(),
     getUSDGLiquidityInPool(),
   ]);
 
   return {
-    usdcInRedemption,
+    // usdcInRedemption,
     usdgLiquidityInPool,
   };
 }
