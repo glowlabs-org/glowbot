@@ -36,13 +36,13 @@ async function checkAudits(client, channelId) {
     if (latestAudits && latestAudits.length > 0) {
       const completedAuditShortIds = getShortIdsOfCompletedAudits(latestAudits);
       const auditsNotifiedSet = new Set(auditsNotified);
-      for (const { shortIds, auditId } of completedAuditShortIds) {
+      for (const { shortIds, auditId, farmId } of completedAuditShortIds) {
         if (shortIds && !auditsNotifiedSet.has(shortIds)) {
           if (auditId) {
             console.log("Sending notification for audit: ", auditId);
             // Send notification
             const channel = client.channels.cache.get(channelId);
-            await channel.send(`https://www.glow.org/audits/${auditId}`);
+            await channel.send(`https://www.glow.org/audits/${farmId}`);
             // Update notified list and file after successful send
             auditsNotified.push(shortIds);
             await fs.promises.writeFile(
@@ -87,6 +87,7 @@ function getShortIdsOfCompletedAudits(audits) {
       return {
         shortIds: item.devices.map((d) => d.shortId).join("-"),
         auditId: item.id,
+        farmId: item.farm.id,
       };
     });
 }
