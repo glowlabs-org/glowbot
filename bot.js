@@ -259,7 +259,7 @@ async function sendGlowStats(message) {
     const reply =
       "**Token stats:**\n" +
       `Glow price: $${lowerPrice.toFixed(4)}\n` +
-      `Uniswap Liquidity: ${
+      `Uniswap Liquidity: $${
         stats.contractsData?.usdgLiquidityInPool?.toLocaleString() || "N/A"
       }\n` +
       `Token holders: ${stats.tokenHolders.toLocaleString()}\n` +
