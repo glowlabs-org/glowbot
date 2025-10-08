@@ -294,7 +294,7 @@ async function sendGlowStats(message, options = {}) {
     const lines = [
       "**Token stats:**",
       `Glow price: $${lowerPrice.toFixed(4)}`,
-      `Uniswap Liquidity: $$${
+      `Uniswap Liquidity: $${
         stats.contractsData?.usdgLiquidityInPool?.toLocaleString(undefined, {
           maximumFractionDigits: 0,
         }) || "N/A"
