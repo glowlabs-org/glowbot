@@ -167,15 +167,49 @@ async function fetchGlowStats() {
   }
 }
 
+function calculateLevenshteinDistance(a, b) {
+  const m = a.length;
+  const n = b.length;
+  if (m === 0) return n;
+  if (n === 0) return m;
+  const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+  for (let i = 0; i <= m; i++) dp[i][0] = i;
+  for (let j = 0; j <= n; j++) dp[0][j] = j;
+  for (let i = 1; i <= m; i++) {
+    const ai = a.charCodeAt(i - 1);
+    for (let j = 1; j <= n; j++) {
+      const cost = ai === b.charCodeAt(j - 1) ? 0 : 1;
+      dp[i][j] = Math.min(
+        dp[i - 1][j] + 1,
+        dp[i][j - 1] + 1,
+        dp[i - 1][j - 1] + cost
+      );
+    }
+  }
+  return dp[m][n];
+}
+
+function isStatsLikeCommand(token) {
+  if (!token) return false;
+  if (token[0] !== "!") return false;
+  const command = token.slice(1).trim().toLowerCase();
+  if (command === "stats" || command === "sta") return true;
+  return calculateLevenshteinDistance(command, "stats") <= 1;
+}
+
 client.on(Events.MessageCreate, async (message) => {
   try {
-    if (message.content === "!stats") {
+    const firstToken = (message.content || "").trim().split(/\s+/)[0];
+    if (isStatsLikeCommand(firstToken)) {
       if (
         message.channel.type === ChannelType.DM ||
         message.channel.id === TRADING_CHANNEL_ID ||
         message.channel.id === TEST_BOT_CHANNEL_ID
       ) {
-        await sendGlowStats(message);
+        const cmd = firstToken.slice(1);
+        const isAllCapsCommand =
+          cmd && cmd === cmd.toUpperCase() && cmd !== cmd.toLowerCase();
+        await sendGlowStats(message, { uppercase: isAllCapsCommand });
       } else {
         message.channel.send(
           `Checking Glow stats is only supported in the channel <#${TRADING_CHANNEL_ID}>`
@@ -249,35 +283,48 @@ function formatMessageForLog(message, isDM) {
   return log;
 }
 
-async function sendGlowStats(message) {
+async function sendGlowStats(message, options = {}) {
+  const { uppercase = false } = options;
   const TOTAL_SUPPLY = 180000000;
   const stats = await fetchGlowStats();
 
   if (stats) {
     const lowerPrice = Math.min(stats.uniswapPrice, stats.contractPrice);
 
-    const reply =
-      "**Token stats:**\n" +
-      `Glow price: $${lowerPrice.toFixed(4)}\n` +
-      `Uniswap Liquidity: $${
-        stats.contractsData?.usdgLiquidityInPool?.toLocaleString() || "N/A"
-      }\n` +
-      `Token holders: ${stats.tokenHolders.toLocaleString()}\n` +
-      `Total supply: ${stats.totalSupply.toLocaleString()}\n` +
-      `Circulating supply: ${stats.circulatingSupply.toLocaleString()}\n` +
-      `Market cap: $${stats.marketCap.toLocaleString()}\n` +
-      `FDV (over 6 years): $${(lowerPrice * TOTAL_SUPPLY).toLocaleString()}\n` +
-      `<https://www.defined.fi/eth/0x6fa09ffc45f1ddc95c1bc192956717042f142c5d?quoteToken=token1&cache=1dafc>\n\n` +
-      `**Farm stats:**\n` +
-      `Number of active farms: ${stats.numberOfFarms}\n` +
+    const lines = [
+      "**Token stats:**",
+      `Glow price: $${lowerPrice.toFixed(4)}`,
+      `Uniswap Liquidity: $$${
+        stats.contractsData?.usdgLiquidityInPool?.toLocaleString(undefined, {
+          maximumFractionDigits: 0,
+        }) || "N/A"
+      }`,
+      `Token holders: ${stats.tokenHolders.toLocaleString()}`,
+      `Total supply: ${stats.totalSupply.toLocaleString()}`,
+      `Circulating supply: ${stats.circulatingSupply.toLocaleString()}`,
+      `Market cap: $${stats.marketCap.toLocaleString()}`,
+      `FDV (over 6 years): $${(lowerPrice * TOTAL_SUPPLY).toLocaleString()}`,
+      `<https://www.defined.fi/eth/0x6fa09ffc45f1ddc95c1bc192956717042f142c5d?quoteToken=token1&cache=1dafc>`,
+      "",
+      "**Farm stats:**",
+      `Number of active farms: ${stats.numberOfFarms}`,
       `Power output of Glow farms (current week): ${Math.round(
         stats.powerOutput
-      ).toLocaleString()} kWh\n` +
+      ).toLocaleString()} kWh`,
       `Carbon credits created (total): ${Math.round(
         stats.carbonCredits
-      ).toLocaleString()}`;
+      ).toLocaleString()}`,
+    ];
 
-    message.channel.send(reply);
+    const processed = uppercase
+      ? lines
+          .map((line) =>
+            /https?:\/\//i.test(line) ? line : line.toUpperCase()
+          )
+          .join("\n")
+      : lines.join("\n");
+
+    message.channel.send(processed);
   } else {
     message.channel.send("Sorry, I could not fetch the stats.");
   }
