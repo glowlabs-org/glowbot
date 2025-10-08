@@ -303,7 +303,12 @@ async function sendGlowStats(message, options = {}) {
       `Total supply: ${stats.totalSupply.toLocaleString()}`,
       `Circulating supply: ${stats.circulatingSupply.toLocaleString()}`,
       `Market cap: $${stats.marketCap.toLocaleString()}`,
-      `FDV (over 6 years): $${(lowerPrice * TOTAL_SUPPLY).toLocaleString()}`,
+      `FDV (over 6 years): $${(lowerPrice * TOTAL_SUPPLY).toLocaleString(
+        undefined,
+        {
+          maximumFractionDigits: 0,
+        }
+      )}`,
       `<https://www.defined.fi/eth/0x6fa09ffc45f1ddc95c1bc192956717042f142c5d?quoteToken=token1&cache=1dafc>`,
       "",
       "**Farm stats:**",
