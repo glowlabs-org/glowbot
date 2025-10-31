@@ -120,6 +120,10 @@ function initGlobalErrorHandlers() {
 async function fetchGlowStats() {
   const baseUrl = "https://glowstats-api-production.up.railway.app/";
   const createUrl = (endpoint) => baseUrl + endpoint;
+  const fractionsBaseUrl =
+    process.env.FRACTIONS_ROUTER_URL ||
+    "https://gca-crm-backend-production-1f2a.up.railway.app/";
+  const createFractionsUrl = (endpoint) => fractionsBaseUrl + endpoint;
 
   try {
     const [
@@ -128,22 +132,32 @@ async function fetchGlowStats() {
       farmCountResponse,
       tokenHoldersResponse,
       contractsData,
+      fractionsSummaryResponse,
+      fractionsApyResponse,
     ] = await Promise.all([
       axios.get(createUrl("tokenStats")),
       axios.get(createUrl("allData")),
       getNumberOfFarms(),
       getGlowHolderCount(),
       fetchContractsData(),
+      axios.get(createFractionsUrl("fractions/summary")).catch(() => null),
+      axios.get(createFractionsUrl("fractions/average-apy")).catch(() => null),
     ]);
 
     const tokenStats = tokenStatsResponse?.data?.GlowMetrics || {};
     const allData = allDataResponse?.data?.farmsWeeklyMetrics || [];
     const farmCount = farmCountResponse || 0;
     const tokenHolders = tokenHoldersResponse || 0;
+    const fractionsSummary = fractionsSummaryResponse?.data || {};
+    const fractionsApy = fractionsApyResponse?.data || {};
 
     if (!tokenStats.price || !allData.length) {
       throw new Error("Missing required data from API response");
     }
+
+    const totalGlwDelegated = fractionsSummary.totalGlwDelegated || "0";
+    const averageDelegatorApy = fractionsApy.averageDelegatorApy || "0";
+    const averageMinerApy = fractionsApy.averageMinerApyPercent || "0";
 
     return {
       uniswapPrice: tokenStats.price || 0,
@@ -156,6 +170,9 @@ async function fetchGlowStats() {
       powerOutput: allData[0]?.powerOutput || 0,
       carbonCredits: getTotalCarbonCredits(allData) || 0,
       contractsData,
+      totalGlwDelegated,
+      averageDelegatorApy,
+      averageMinerApy,
     };
   } catch (error) {
     const msg = logger.appendErrorToMessage(
@@ -291,6 +308,20 @@ async function sendGlowStats(message, options = {}) {
   if (stats) {
     const lowerPrice = Math.min(stats.uniswapPrice, stats.contractPrice);
 
+    const totalGlwDelegatedFormatted = stats.totalGlwDelegated
+      ? (parseFloat(stats.totalGlwDelegated) / 1e18).toLocaleString(undefined, {
+          maximumFractionDigits: 2,
+        })
+      : "N/A";
+
+    const delegatorApyFormatted = stats.averageDelegatorApy
+      ? parseFloat(stats.averageDelegatorApy).toFixed(2)
+      : "N/A";
+
+    const minerApyFormatted = stats.averageMinerApy
+      ? parseFloat(stats.averageMinerApy).toFixed(2)
+      : "N/A";
+
     const lines = [
       "**Token stats:**",
       `Glow price: $${lowerPrice.toFixed(4)}`,
@@ -309,6 +340,9 @@ async function sendGlowStats(message, options = {}) {
           maximumFractionDigits: 0,
         }
       )}`,
+      `Number of Delegated Tokens: ${totalGlwDelegatedFormatted}`,
+      `Average Delegator APY: ${delegatorApyFormatted}%`,
+      `Average Miner APY: ${minerApyFormatted}%`,
       `<https://www.defined.fi/eth/0x6fa09ffc45f1ddc95c1bc192956717042f142c5d?quoteToken=token1&cache=1dafc>`,
       "",
       "**Farm stats:**",
