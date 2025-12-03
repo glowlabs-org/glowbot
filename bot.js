@@ -124,10 +124,12 @@ async function fetchGlowStats() {
     process.env.FRACTIONS_ROUTER_URL ||
     "https://gca-crm-backend-production-1f2a.up.railway.app/";
   const createFractionsUrl = (endpoint) => fractionsBaseUrl + endpoint;
+  const glowGreenApiUrl =
+    "https://glow-green-api.simonnfts.workers.dev/headline-stats";
 
   try {
     const [
-      tokenStatsResponse,
+      glowGreenResponse,
       allDataResponse,
       farmCountResponse,
       tokenHoldersResponse,
@@ -135,7 +137,7 @@ async function fetchGlowStats() {
       fractionsSummaryResponse,
       fractionsApyResponse,
     ] = await Promise.all([
-      axios.get(createUrl("tokenStats")),
+      axios.get(glowGreenApiUrl),
       axios.get(createUrl("allData")),
       getNumberOfFarms(),
       getGlowHolderCount(),
@@ -144,14 +146,17 @@ async function fetchGlowStats() {
       axios.get(createFractionsUrl("fractions/average-apy")).catch(() => null),
     ]);
 
-    const tokenStats = tokenStatsResponse?.data?.GlowMetrics || {};
+    const glowGreenStats = glowGreenResponse?.data || {};
     const allData = allDataResponse?.data?.farmsWeeklyMetrics || [];
     const farmCount = farmCountResponse || 0;
     const tokenHolders = tokenHoldersResponse || 0;
     const fractionsSummary = fractionsSummaryResponse?.data || {};
     const fractionsApy = fractionsApyResponse?.data || {};
 
-    if (!tokenStats.price || !allData.length) {
+    const hasPrice =
+      glowGreenStats.uniswapPrice !== undefined ||
+      glowGreenStats.earlyLiquidityPrice !== undefined;
+    if (!hasPrice || !allData.length) {
       throw new Error("Missing required data from API response");
     }
 
@@ -160,12 +165,12 @@ async function fetchGlowStats() {
     const averageMinerApy = fractionsApy.averageMinerApyPercent || "0";
 
     return {
-      uniswapPrice: tokenStats.price || 0,
-      contractPrice: tokenStats.glowPriceFromContract || 0,
+      uniswapPrice: glowGreenStats.uniswapPrice || 0,
+      contractPrice: glowGreenStats.earlyLiquidityPrice || 0,
       tokenHolders,
-      totalSupply: Math.round(tokenStats.totalSupply || 0),
-      circulatingSupply: Math.round(tokenStats.circulatingSupply || 0),
-      marketCap: Math.round(tokenStats.marketCap || 0),
+      totalSupply: Math.round(glowGreenStats.totalSupply || 0),
+      circulatingSupply: Math.round(glowGreenStats.circulatingSupply || 0),
+      marketCap: Math.round(glowGreenStats.marketCap || 0),
       numberOfFarms: farmCount,
       powerOutput: allData[0]?.powerOutput || 0,
       carbonCredits: getTotalCarbonCredits(allData) || 0,
