@@ -134,7 +134,6 @@ async function fetchGlowStats() {
       farmCountResponse,
       tokenHoldersResponse,
       contractsData,
-      fractionsSummaryResponse,
       fractionsApyResponse,
     ] = await Promise.all([
       axios.get(glowGreenApiUrl),
@@ -142,7 +141,6 @@ async function fetchGlowStats() {
       getNumberOfFarms(),
       getGlowHolderCount(),
       fetchContractsData(),
-      axios.get(createFractionsUrl("fractions/summary")).catch(() => null),
       axios.get(createFractionsUrl("fractions/average-apy")).catch(() => null),
     ]);
 
@@ -150,7 +148,6 @@ async function fetchGlowStats() {
     const allData = allDataResponse?.data?.farmsWeeklyMetrics || [];
     const farmCount = farmCountResponse || 0;
     const tokenHolders = tokenHoldersResponse || 0;
-    const fractionsSummary = fractionsSummaryResponse?.data || {};
     const fractionsApy = fractionsApyResponse?.data || {};
 
     const hasPrice =
@@ -160,7 +157,7 @@ async function fetchGlowStats() {
       throw new Error("Missing required data from API response");
     }
 
-    const totalGlwDelegated = fractionsSummary.totalGlwDelegated || "0";
+    const totalGlwDelegated = glowGreenStats.activelyDelegated || 0;
     const averageDelegatorApy = fractionsApy.averageDelegatorApy || "0";
     const averageMinerApy = fractionsApy.averageMinerApyPercent || "0";
 
@@ -314,7 +311,7 @@ async function sendGlowStats(message, options = {}) {
     const lowerPrice = Math.min(stats.uniswapPrice, stats.contractPrice);
 
     const totalGlwDelegatedFormatted = stats.totalGlwDelegated
-      ? (parseFloat(stats.totalGlwDelegated) / 1e18).toLocaleString(undefined, {
+      ? stats.totalGlwDelegated.toLocaleString(undefined, {
           maximumFractionDigits: 2,
         })
       : "N/A";
@@ -345,7 +342,7 @@ async function sendGlowStats(message, options = {}) {
           maximumFractionDigits: 0,
         }
       )}`,
-      `Number of Delegated Tokens: ${totalGlwDelegatedFormatted}`,
+      `Number of Actively Delegated Tokens: ${totalGlwDelegatedFormatted}`,
       `Average Delegator APY: ${delegatorApyFormatted}%`,
       `Average Miner APY: ${minerApyFormatted}%`,
       `<https://www.defined.fi/eth/0x6fa09ffc45f1ddc95c1bc192956717042f142c5d?quoteToken=token1&cache=1dafc>`,

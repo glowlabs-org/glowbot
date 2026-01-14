@@ -22,7 +22,6 @@ async function fetchGlowStats() {
       farmCountResponse,
       tokenHoldersResponse,
       contractsData,
-      fractionsSummaryResponse,
       fractionsApyResponse,
     ] = await Promise.all([
       axios.get(glowGreenApiUrl),
@@ -30,7 +29,6 @@ async function fetchGlowStats() {
       getNumberOfFarms(),
       getGlowHolderCount(),
       fetchContractsData(),
-      axios.get(createFractionsUrl("fractions/summary")).catch(() => null),
       axios.get(createFractionsUrl("fractions/average-apy")).catch(() => null),
     ]);
 
@@ -38,7 +36,6 @@ async function fetchGlowStats() {
     const allData = allDataResponse?.data?.farmsWeeklyMetrics || [];
     const farmCount = farmCountResponse || 0;
     const tokenHolders = tokenHoldersResponse || 0;
-    const fractionsSummary = fractionsSummaryResponse?.data || {};
     const fractionsApy = fractionsApyResponse?.data || {};
 
     const hasPrice =
@@ -48,7 +45,7 @@ async function fetchGlowStats() {
       throw new Error("Missing required data from API response");
     }
 
-    const totalGlwDelegated = fractionsSummary.totalGlwDelegated || "0";
+    const totalGlwDelegated = glowGreenStats.activelyDelegated || 0;
     const averageDelegatorApy = fractionsApy.averageDelegatorApy || "0";
     const averageMinerApy = fractionsApy.averageMinerApyPercent || "0";
 
@@ -81,12 +78,9 @@ function previewStats(uppercase = false) {
       const lowerPrice = Math.min(stats.uniswapPrice, stats.contractPrice);
 
       const totalGlwDelegatedFormatted = stats.totalGlwDelegated
-        ? (parseFloat(stats.totalGlwDelegated) / 1e18).toLocaleString(
-            undefined,
-            {
-              maximumFractionDigits: 2,
-            }
-          )
+        ? stats.totalGlwDelegated.toLocaleString(undefined, {
+            maximumFractionDigits: 2,
+          })
         : "N/A";
 
       const delegatorApyFormatted = stats.averageDelegatorApy
