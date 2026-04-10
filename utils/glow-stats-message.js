@@ -73,14 +73,16 @@ function formatGlowStatsMessage(payload, options = {}) {
     `Uniswap Liquidity: ${formatUsd(stats.contractsData?.usdgLiquidityInPool, {
       maximumFractionDigits: 0,
     })}`,
+    `Total Embedded Liquidity: ${formatUsd(stats.totalEmbeddedLiquidity, {
+      maximumFractionDigits: 2,
+    })}`,
     `Token holders: ${formatNumber(stats.tokenHolders)}`,
-    `Total supply: ${formatNumber(stats.totalSupply)}`,
     `Circulating supply: ${formatNumber(stats.circulatingSupply)}`,
     `Market cap: ${formatUsd(stats.marketCap)}`,
-    `FDV (over 6 years): ${formatUsd(fdvValue, {
+    `FDV (Jan 2030): ${formatUsd(fdvValue, {
       maximumFractionDigits: 0,
     })}`,
-    `Number of Actively Delegated Tokens: ${totalGlwDelegatedFormatted}`,
+    `Delegated tokens: ${totalGlwDelegatedFormatted}`,
     `Average Delegator APY: ${withPercent(delegatorApyFormatted)}`,
     `Average Miner APY: ${withPercent(minerApyFormatted)}`,
     "<https://www.defined.fi/eth/0x6fa09ffc45f1ddc95c1bc192956717042f142c5d?quoteToken=token1&cache=1dafc>",
