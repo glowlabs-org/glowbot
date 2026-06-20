@@ -31,6 +31,10 @@ const { checkMessageForSpam } = require("./monitors/spam-monitor");
 const { checkMessageForGreeting } = require("./monitors/gm-gn-monitor");
 const { fetchGlowStats } = require("./utils/glow-stats");
 const { formatGlowStatsMessage } = require("./utils/glow-stats-message");
+const { handleConnectCommand } = require("./commands/connect");
+const { handleFlexCommand } = require("./commands/flex");
+const { handleWalletsCommand } = require("./commands/wallets");
+const { handleLeaderboardCommand } = require("./commands/leaderboard");
 const logsDir = "./discord-logs";
 
 const monitoredChannels = {
@@ -178,6 +182,25 @@ client.on(Events.MessageCreate, async (message) => {
 
     if (message.content === "!ping") {
       message.channel.send("pong");
+    }
+
+    if (message.content === "!connect") {
+      await handleConnectCommand(message);
+    }
+
+    if (message.content === "!flex") {
+      await handleFlexCommand(message);
+    }
+
+    if (message.content === "!wallets" || message.content.startsWith("!wallets ")) {
+      await handleWalletsCommand(message);
+    }
+
+    if (
+      message.content === "!leaderboard" ||
+      message.content.startsWith("!leaderboard ")
+    ) {
+      await handleLeaderboardCommand(message);
     }
 
     await checkMessageForSpam(client, message);
