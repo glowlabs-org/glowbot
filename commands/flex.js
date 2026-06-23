@@ -61,10 +61,11 @@ function buildFlexEmbed(displayName, data) {
   const lines = [
     `**User:** ${displayName}`,
     `**Vault:** ${fmtGlw(data.vaultedGlwWei)} GLW`,
-    // Pending: GLW delegated to launchpad fractions still filling. Becomes Vault
-    // once the fraction fills and the farm is created. Only shown when > 0.
+    // Pending: GLW delegated to launchpad fractions not yet counted in the vault
+    // (still raising, or filled only in the current uncounted week). Rolls into
+    // Vault when the funding week closes. Only shown when > 0.
     ...(hasPendingGlw(data.pendingGlwWei)
-      ? [`**Pending:** ${fmtGlw(data.pendingGlwWei)} GLW _(launchpad, fills soon)_`]
+      ? [`**Pending:** ${fmtGlw(data.pendingGlwWei)} GLW _(launchpad, vaults soon)_`]
       : []),
     `**Total Power:** ${fmtNum(data.totalWatts)} watts`,
     `**Total Carbon:** ${fmtNum(data.totalCarbonCredits)} tons`,
