@@ -35,6 +35,7 @@ const { handleConnectCommand } = require("./commands/connect");
 const { handleFlexCommand } = require("./commands/flex");
 const { handleWalletsCommand } = require("./commands/wallets");
 const { handleLeaderboardCommand } = require("./commands/leaderboard");
+const { handleHelpCommand } = require("./commands/help");
 const logsDir = "./discord-logs";
 
 const monitoredChannels = {
@@ -188,7 +189,7 @@ client.on(Events.MessageCreate, async (message) => {
       await handleConnectCommand(message);
     }
 
-    if (message.content === "!flex") {
+    if (message.content === "!flex" || message.content.startsWith("!flex ")) {
       await handleFlexCommand(message);
     }
 
@@ -201,6 +202,10 @@ client.on(Events.MessageCreate, async (message) => {
       message.content.startsWith("!leaderboard ")
     ) {
       await handleLeaderboardCommand(message);
+    }
+
+    if (message.content === "!help") {
+      await handleHelpCommand(message);
     }
 
     await checkMessageForSpam(client, message);

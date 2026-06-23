@@ -1,16 +1,22 @@
 const axios = require("axios");
 const logger = require("../utils/log-util");
 const { CRM_BASE, BOT_API_KEY, fmtNum, fmtGlw } = require("./flex");
-const { resolveTargetUser } = require("./wallets");
+const { resolveTargetUser } = require("./resolve-user");
 
 const METRIC_LABEL = { vault: "Vault", watts: "Power", carbon: "Carbon" };
+
+// Public web page with the full, ranked leaderboard. Staging: set
+// GLOW_LEADERBOARD_URL to the staging frontend's /leaderboard.
+const LEADERBOARD_URL = (
+  process.env.GLOW_LEADERBOARD_URL || "https://app.glow.org/leaderboard"
+).replace(/\/$/, "");
 
 // Map a leading command token to a metric (or null if it's not one).
 function tokenToMetric(token) {
   const t = (token || "").toLowerCase();
   if (t === "vault") return "vault";
   if (t === "watts" || t === "power") return "watts";
-  if (t === "carbon") return "carbon";
+  if (t === "carbon" || t === "co2") return "carbon";
   return null;
 }
 
@@ -24,6 +30,7 @@ function metricValue(metric, row) {
  * !leaderboard [metric] [@user|username] — grouped Glow leaderboard.
  *   !leaderboard                → top 10 by Vault (default)
  *   !leaderboard watts          → top 10 by Power
+ *   !leaderboard carbon         → top 10 by Carbon (alias: co2)
  *   !leaderboard taek           → 10 rows around taek (Vault)
  *   !leaderboard carbon taek    → 10 rows around taek (Carbon)
  */
@@ -75,12 +82,17 @@ async function handleLeaderboardCommand(message) {
     const footerParts = [`${data.totalEntities ?? rows.length} ranked`];
     if (data.you && data.you.rank) footerParts.push(`you're #${data.you.rank}`);
 
+    const description =
+      lines.join("\n") +
+      `\n\n**[View the full leaderboard →](${LEADERBOARD_URL})**`;
+
     await message.reply({
       embeds: [
         {
           color: 0xffd60a,
           title,
-          description: lines.join("\n"),
+          url: LEADERBOARD_URL,
+          description,
           footer: { text: `glow.org · ${footerParts.join(" · ")}` },
           timestamp: new Date().toISOString(),
         },

@@ -49,6 +49,7 @@ const { handleConnectCommand } = require("../commands/connect");
 const { handleFlexCommand } = require("../commands/flex");
 const { handleWalletsCommand } = require("../commands/wallets");
 const { handleLeaderboardCommand } = require("../commands/leaderboard");
+const { handleHelpCommand } = require("../commands/help");
 
 // ---- terminal rendering -----------------------------------------------------
 
@@ -156,6 +157,11 @@ async function main() {
   await run("!connect", { ...self, content: "!connect" }, handleConnectCommand);
   await run("!flex", { ...self, content: "!flex" }, handleFlexCommand);
   await run(
+    "!flex <id> (someone else, like !wallets)",
+    { ...self, content: `!flex ${OTHER_ID}` },
+    handleFlexCommand
+  );
+  await run(
     "!wallets <id>",
     { ...self, content: `!wallets ${OTHER_ID}` },
     handleWalletsCommand
@@ -176,10 +182,16 @@ async function main() {
     handleLeaderboardCommand
   );
   await run(
+    "!leaderboard co2 (alias for Carbon)",
+    { ...self, content: "!leaderboard co2" },
+    handleLeaderboardCommand
+  );
+  await run(
     "!leaderboard <id> (window around you, Vault)",
     { ...self, content: `!leaderboard ${SELF_ID}` },
     handleLeaderboardCommand
   );
+  await run("!help", { ...self, content: "!help" }, handleHelpCommand);
 
   console.log(`\n${BOLD}Done.${RESET}`);
 }

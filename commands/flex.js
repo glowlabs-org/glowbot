@@ -1,6 +1,7 @@
 const axios = require("axios");
 const { formatUnits } = require("viem");
 const logger = require("../utils/log-util");
+const { resolveTargetUser } = require("./resolve-user");
 
 // CRM base + bot key for the read-only Discord resolve endpoints. These live on
 // the production Glow CRM backend, which is a SEPARATE service from the gca
@@ -83,10 +84,38 @@ function buildFlexEmbed(displayName, data) {
 }
 
 /**
- * !flex — show the caller's aggregated Glow stats. If the Discord account isn't
- * sign-verified to a wallet, prompt them to run !connect.
+ * !flex [@user|username] — aggregated Glow stats.
+ *   !flex            → the caller's own stats (prompt !connect if unlinked)
+ *   !flex @user      → someone else's stats (same as !wallets @user)
  */
 async function handleFlexCommand(message) {
+  const arg = message.content.trim().split(/\s+/).slice(1).join(" ");
+
+  // !flex @user — flex someone else's stats (mirrors !wallets @user).
+  if (arg || message.mentions?.users?.size) {
+    try {
+      const target = await resolveTargetUser(message, arg);
+      if (!target) {
+        await message.reply(`Couldn't find a Discord user matching "${arg}".`);
+        return;
+      }
+
+      const data = await fetchFlex(target.id);
+      if (!data.linked) {
+        await message.reply(`**${target.name}** hasn't linked a Glow wallet yet.`);
+        return;
+      }
+
+      await message.reply({ embeds: [buildFlexEmbed(target.name, data)] });
+    } catch (err) {
+      logger.logMessage(logger.appendErrorToMessage("!flex error: ", err), true);
+      await message
+        .reply("Couldn't fetch those stats right now — try again in a bit.")
+        .catch(() => {});
+    }
+    return;
+  }
+
   const discordId = message.author.id;
 
   try {
