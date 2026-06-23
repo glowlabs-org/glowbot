@@ -2,12 +2,12 @@ const axios = require("axios");
 const { formatUnits } = require("viem");
 const logger = require("../utils/log-util");
 
-// CRM base + bot key for the read-only Discord resolve endpoints.
-// Staging: GCA_SERVER_URL=https://gca-crm-backend-staging.up.railway.app and the
-// matching DISCORD_BOT_API_KEY set on that env.
+// CRM base + bot key for the read-only Discord resolve endpoints. These live on
+// the production Glow CRM backend, which is a SEPARATE service from the gca
+// server (GCA_SERVER_URL); don't read that here or !flex hits the wrong host.
+// Staging: set DISCORD_CRM_URL to the staging CRM and use its matching DISCORD_BOT_API_KEY.
 const CRM_BASE = (
-  process.env.GCA_SERVER_URL ||
-  process.env.FRACTIONS_ROUTER_URL ||
+  process.env.DISCORD_CRM_URL ||
   "https://gca-crm-backend-production-1f2a.up.railway.app"
 ).replace(/\/$/, "");
 const BOT_API_KEY = process.env.DISCORD_BOT_API_KEY || "";

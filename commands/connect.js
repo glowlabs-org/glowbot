@@ -3,7 +3,7 @@ const logger = require("../utils/log-util");
 // Frontend page where the user connects wallet -> Discord OAuth -> sign-to-bind.
 // Staging: set GLOW_CONNECT_URL to the staging frontend's /connect.
 const CONNECT_URL = (
-  process.env.GLOW_CONNECT_URL || "https://glow.org/connect"
+  process.env.GLOW_CONNECT_URL || "https://app.glow.org/connect"
 ).replace(/\/$/, "");
 
 /**

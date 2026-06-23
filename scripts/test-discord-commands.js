@@ -35,11 +35,11 @@ const base =
   "https://gca-crm-backend-staging.up.railway.app";
 
 // Force the CRM base BEFORE requiring the command modules — they read
-// GCA_SERVER_URL once at import time to compute CRM_BASE.
-process.env.GCA_SERVER_URL = base;
+// DISCORD_CRM_URL once at import time to compute CRM_BASE.
+process.env.DISCORD_CRM_URL = base;
 // A connect URL so the !connect embed renders a real link in the preview.
 process.env.GLOW_CONNECT_URL =
-  process.env.GLOW_CONNECT_URL || "https://glow.org/connect";
+  process.env.GLOW_CONNECT_URL || "https://app.glow.org/connect";
 
 const positional = argv.filter((a, i) => a !== "--base" && argv[i - 1] !== "--base");
 const SELF_ID = positional[0] || "589137060825399317";
