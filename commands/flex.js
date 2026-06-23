@@ -48,11 +48,24 @@ async function fetchFlex(discordId) {
 
 // David's copy: User / Vault / Total Power / Total Carbon / Best rank. The
 // wallet is deliberately omitted (multiple wallets may back one user).
+function hasPendingGlw(wei) {
+  try {
+    return BigInt(wei || "0") > 0n;
+  } catch {
+    return false;
+  }
+}
+
 function buildFlexEmbed(displayName, data) {
   const best = data.bestRank;
   const lines = [
     `**User:** ${displayName}`,
     `**Vault:** ${fmtGlw(data.vaultedGlwWei)} GLW`,
+    // Pending: GLW delegated to launchpad fractions still filling. Becomes Vault
+    // once the fraction fills and the farm is created. Only shown when > 0.
+    ...(hasPendingGlw(data.pendingGlwWei)
+      ? [`**Pending:** ${fmtGlw(data.pendingGlwWei)} GLW _(launchpad, fills soon)_`]
+      : []),
     `**Total Power:** ${fmtNum(data.totalWatts)} watts`,
     `**Total Carbon:** ${fmtNum(data.totalCarbonCredits)} tons`,
     "",
